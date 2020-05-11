@@ -67,24 +67,27 @@ An example: we use the `whitespaceCharSet` and `digitCharSet` from the `settings
 
 The following regex symbols are recognised.
 
-| Symbol  | Description | Example     |
-| ------- | ----------- | ----------- |
-| `*` | zero or more | `abc*` |
-| `+` | one or more | `abc+` |
-| `?` | zero or one | `abc?` |
-| `.` | any single character | `a.b.c` |
-| `[ ]` | inclusive character range | `[A-C][a-c1-5_$]{,7}` |
-| `[^ ]` | exclusive character range | `[A-C][^a-c1-5_$]{,7}`|
-| `{`_`n`_`}` | exact number of matches | `(a|b|c){5}` |
-| `{`_`n`_`,`_`m`_`}` | range of matches | `(a|b|c){1,7}` |
-| `{`_`n`_`,}` | lower bounded number of matches | `(a|b|c){3,}` |
-| `|` | alternatives | `car|train|bike` |
-| `(`_`r`_`)` | capture group | `(abc*)` |
-| `\`_`n`_ | capturing group backreference | `(abc*)XYZ\1` |
-| `\s` and `\S` | whitespace / non-whitespace alias | |
-| `\d` and `\D` | digit / non-digit alias | |
-| `\w` and `\W` | word / non-word alias | |
-| `\`_`*`_, ... | Escape meta character | `\*\.\+\?\[\]\{\}\(\)\^\$\|\\`
+<table>
+<tr><th>Symbol</th><th>Description</th><th>Example</th></tr>
+<tr><td><code>*</code></td><td>zero or more</td><td><code>abc*</code></td></tr>
+<tr><td><code>+</code></td><td>one or more</td><td><code>abc+</code></td></tr>
+<tr><td><code>?</code></td><td>zero or one</td><td><code>abc?</code></td></tr>
+<tr><td><code>.</code></td><td>any single character</td><td><code>a.b.c</code></td></tr>
+<tr><td><code>[ ]</code></td><td>inclusive character range</td><td><code>[A-C][a-c1-5_$]{,7}</code></td></tr>
+<tr><td><code>[^ ]</code></td><td>exclusive character range</td><td><code>[A-C][^a-c1-5_$]{,7}</code></td></tr>
+<tr><td><code>|</code></td><td>alternatives</td><td><code>car|train|bike</code></td></tr>
+<tr><td><code>{<em>n</em>}</code></td><td>exact number of matches</td><td><code>(a|b|c){5}</code></td></tr>
+<tr><td><code>{<em>n</em>,<em>m</em>}</code></td><td>range of matches</td><td><code>(a|b|c){1,7}</code></td></tr>
+<tr><td><code>{<em>n</em>,}</code></td><td>lower bounded number of matches</td><td><code>(a|b|c){3,}</code></td></tr>
+<tr><td><code>(<em>r</em>)</code></td><td>capture group</td><td><code>(abc*)</code></td></tr>
+<tr><td><code>\<em>n</em></code></td><td>capturing group backreference</td><td><code>(abc*)XYZ\1</code></td></tr>
+<tr><td><code>\s</code> and <code>\S</code></td><td>whitespace / non-whitespace alias</td><td></td></tr>
+<tr><td><code>\d</code> and <code>\D</code></td><td>digit / non-digit alias</td><td></td></tr>
+<tr><td><code>\w</code> and <code>\W</code></td><td>word / non-word alias</td><td></td></tr>
+<tr><td><code>\*</code>, ...</td><td>Escape meta character</td><td><code>\*\.\+\?\[\]\{\}\(\)\^\$\|\\</code></td></tr>
+</table>
+
+Any other characters are taken literal.
 
 Inside json files you can use the unicode point escape to specify a literal character: `\u`_`hhhh`_
 
