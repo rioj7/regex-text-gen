@@ -1,0 +1,78 @@
+{
+  "name": "regex-text-gen",
+  "displayName": "Regex Text Generator",
+  "description": "Generate text based on Regular Expression (regex)",
+  "publisher": "rioj7",
+  "license": "MIT",
+  "version": "0.3.0",
+  "engines": {"vscode": "^1.40.0"},
+  "categories": ["Other"],
+  "keywords": ["text","generate","regex"],
+  "icon": "images/icon.png",
+  "galleryBanner": {"color": "#000080", "theme": "dark"},
+  "activationEvents": [
+    "onCommand:regexTextGen.generateText"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "regexTextGen.generateText",
+        "title": "Generate text based on Regular Expression (regex)"
+      }
+    ],
+    "configuration": {
+      "title": "Regex Text Gen",
+      "properties": {
+        "regexTextGen.defaultGeneratorRegex": {
+          "type": "string",
+          "scope": "resource",
+          "description": "Start Generator Regex of the input box. default: (a|b|c){5,}",
+          "default": "(a|b|c){5,}"
+        },
+        "regexTextGen.defaultUpperLimit": {
+          "type": "integer",
+          "scope": "resource",
+          "description": "Upperlimit for repetition qualifiers: *, + and {n,}",
+          "default": 10
+        },
+        "regexTextGen.baseCharSet": {
+          "type": "array",
+          "scope": "resource",
+          "items": { "type": "string" },
+          "description": "Character set \".\" will generate from. Array of: single unicode char (\"\\u0009\") or unicode character range (\"a-\\u007a\"). Default: HT + Basic Latin",
+          "default": ["\u0009", "\u0020-\u007e"]
+        },
+        "regexTextGen.whitespaceCharSet": {
+          "type": "array",
+          "scope": "resource",
+          "items": { "type": "string" },
+          "description": "Character set \"\\s\" will generate from. Array of: single unicode char (\"\\u0009\") or unicode character range (\"a-\\u007a\"). Default: HT + SPACE",
+          "default": ["\u0009", "\u0020"]
+        },
+        "regexTextGen.digitCharSet": {
+          "type": "array",
+          "scope": "resource",
+          "items": { "type": "string" },
+          "description": "Character set \"\\d\" will generate from. Array of: single unicode char (\"\\u0009\") or unicode character range (\"a-\\u007a\"). Default: 0-9",
+          "default": ["0-9"]
+        },
+        "regexTextGen.wordCharSet": {
+          "type": "array",
+          "scope": "resource",
+          "items": { "type": "string" },
+          "description": "Character set \"\\w\" will generate from. Array of: single unicode char (\"\\u0009\") or unicode character range (\"a-\\u007a\"). Default: 0-9 + a-z + A-Z + UNDERSCORE",
+          "default": ["_", "0-9", "a-z", "A-Z"]
+        }
+      }
+    }
+  },
+  "main": "./extension.js",
+  "homepage": "https://github.com/rioj7/regex-text-gen",
+  "bugs": {
+    "url": "https://github.com/rioj7/regex-text-gen/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rioj7/regex-text-gen.git"
+  }
+}
