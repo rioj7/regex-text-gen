@@ -35,17 +35,25 @@ The characters that are not part of the base character set are removed from the 
 
 The settings that can be specified in `settings.json` file or the arguments for key binding are:
 
-* `defaultGeneratorRegex` : a string. Start Generator Regex of the input box. default: `(a|b|c){5,}`
-* `defaultUpperLimit` : an integer. An upper limit for the repeat quantifiers that have no upper limit: `*`, `+`, `{`_`n`_`,}`. default: 10
+* `defaultGeneratorRegex` : a string. Start of the input box: Generator Regex. default: `(a|b|c){5,}`
+* `defaultOriginalTextRegex` : a string. Start of the input box: Match Original Text Regex. default: `.*`
+* `defaultUpperLimit` : an integer. An upper limit for the repeat quantifiers that have no upper limit: `*`, `+`, <code>{<em>n</em>}</code>. default: 10
 * `baseCharSet` : array of strings. Character set `.` will generate from. default: `["\u0009", "\u0020-\u007e"]`
 * `whitespaceCharSet` : array of strings. Character set `\s` will generate from. default: `["\u0009", "\u0020"]`
 * `digitCharSet` : array of strings. Character set `\d` will generate from. default: `["0-9"]`
 * `wordCharSet` : array of strings. Character set `\w` will generate from. default: `["_", "0-9", "a-z", "A-Z"]`
-* `generatorRegex` : used in key binding. See `defaultGeneratorRegex`
+
+For the `args` property of the keybinding also:
+
+* `generatorRegex` : See `defaultGeneratorRegex`
+* `originalTextRegex` : See `defaultOriginalTextRegex`
+* `useInputBox` : (boolean) use the input boxes to modify the regular expressions. default: `false`
 
 For a [key bindings in `keybindings.json`](https://code.visualstudio.com/docs/getstarted/keybindings) the `args` property is an object with the given properties.
 
 The generator regex for a key binding is specified with the property: `generatorRegex`
+
+The property `useInputBox` allows to define different start regular expressions or different character sets.
 
 An example: we use the `whitespaceCharSet` and `digitCharSet` from the `settings.json` file.
 
@@ -81,6 +89,7 @@ The following regex symbols are recognised.
 <tr><td><code>{<em>n</em>,}</code></td><td>lower bounded number of matches</td><td><code>(a|b|c){3,}</code></td></tr>
 <tr><td><code>(<em>r</em>)</code></td><td>capture group</td><td><code>(abc*)</code></td></tr>
 <tr><td><code>\<em>n</em></code></td><td>capturing group backreference</td><td><code>(abc*)XYZ\1</code></td></tr>
+<tr><td><code>{{<em>n</em>}}</code></td><td>original text capturing group backreference. <em>n</em>: 0..9</td><td><code>XY-{{1}}-AP</code></td></tr>
 <tr><td><code>\s</code> and <code>\S</code></td><td>whitespace / non-whitespace alias</td><td></td></tr>
 <tr><td><code>\d</code> and <code>\D</code></td><td>digit / non-digit alias</td><td></td></tr>
 <tr><td><code>\w</code> and <code>\W</code></td><td>word / non-word alias</td><td></td></tr>
@@ -89,7 +98,7 @@ The following regex symbols are recognised.
 
 Any other characters are taken literal.
 
-Inside json files you can use the unicode point escape to specify a literal character: `\u`_`hhhh`_
+Inside json files you can use the unicode point escape to specify a literal character: <code>\u<em>hhhh</em></code>
 
 ### Character range
 
@@ -98,6 +107,12 @@ A character range `[]` can contain one or more: literal characters or a range of
 The only meta character that needs to be escaped inside a character range `[]` is the `]`. Other escapes, like `\*`, are not recognised.
 
 If you want to have a `-` as part of a character range `[]`, start the range with a `-`: `[-0-9]` are all the digits plus the `-` character
+
+### Original text back reference
+
+The originaly selected text in the range is matched against a regular expression. The captured groups of this match can be used in the generated text with special back references: `{{0}}`, `{{1}}` ... `{{9}}`. Back reference `{{0}}` is all the matched text, this is not always the original text of the selected range. Add `.*` before and after the regex if needed.
+
+`{{1}}` ... `{{9}}` are the text matched by the specific capture groups of `defaultOriginalTextRegex`/`originalTextRegex`.
 
 ## Credits
 
@@ -108,9 +123,10 @@ I have used parts of the following programs:
 * Rob Dawson for: [JavaScript Regular Expression Parser](http://codebox.org.uk/pages/regex-parser)
 
 ## TODO
-* match the selected text with a different regular expression and use the captured groups in the generated text with special back references: `{{0}}`, `{{1}}` ... `{{9}}`
+
 * non-capturing groups `(?:)` in the Generator Regex because the number of back references is limited to 9
 * a command-variable command where the source is also one of the arguments
 * `{{i}}` : special reference - is the 0-based index of the range
 * allow arithmetic on the range index with numbers and operators: + - * / % ( )
 * allow `\w`, `\s`, `\d`, `\W`, `\S`, `\D` inside character ranges `[]`
+* live preview of the captured groups while entering the `originalTextRegex`

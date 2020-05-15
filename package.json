@@ -4,7 +4,7 @@
   "description": "Generate text based on Regular Expression (regex)",
   "publisher": "rioj7",
   "license": "MIT",
-  "version": "0.3.2",
+  "version": "0.4.0",
   "engines": {"vscode": "^1.40.0"},
   "categories": ["Other"],
   "keywords": ["text","generate","regex"],
@@ -26,7 +26,7 @@
         "regexTextGen.defaultGeneratorRegex": {
           "type": "string",
           "scope": "resource",
-          "description": "Start Generator Regex of the input box. default: (a|b|c){5,}",
+          "description": "Start of the input box: Generator Regex. default: (a|b|c){5,}",
           "default": "(a|b|c){5,}"
         },
         "regexTextGen.defaultUpperLimit": {
@@ -62,6 +62,12 @@
           "items": { "type": "string" },
           "description": "Character set \"\\w\" will generate from. Array of: single unicode char (\"\\u0009\") or unicode character range (\"a-\\u007a\"). Default: 0-9 + a-z + A-Z + UNDERSCORE",
           "default": ["_", "0-9", "a-z", "A-Z"]
+        },
+        "regexTextGen.defaultOriginalTextRegex": {
+          "type": "string",
+          "scope": "resource",
+          "description": "Start of the input box: Match Original Text Regex. default: .*",
+          "default": ".*"
         }
       }
     }

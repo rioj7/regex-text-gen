@@ -16,7 +16,7 @@ function regex(parseTreeRootNode, startGenerator) {
     walkParseTree(parseTreeRootNode);
 
     return {
-        generate: function (rangeIndex, originalMatch) {
+        generate: function () {
           return generatorFunctions.map(g => g.call(g)).join('');
         }
     };

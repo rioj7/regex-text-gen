@@ -99,6 +99,9 @@ var parser = (function (grammar) {
         setGeneratorConfig: function(baseCharSet, whitespaceCharSet, digitCharSet, wordCharSet, defaultUpperLimit) {
           handlers.setGeneratorConfig(baseCharSet, whitespaceCharSet, digitCharSet, wordCharSet, defaultUpperLimit);
           handlers.apply(grammar);
+        },
+        setRangeConfig: function (rangeIndex, originalMatch) {
+          handlers.setRangeConfig(rangeIndex, originalMatch);
         }
     };
 }(grammar));

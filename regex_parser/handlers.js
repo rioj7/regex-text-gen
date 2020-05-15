@@ -59,6 +59,8 @@ class CharSet {
 var handlers = (function () {
     var UNLIMITED = 10;
     var captureGroups = [];
+    var captureGroupsSource = [];
+    var rangeIndexSource = 0;
     var baseCharSet = new CharSet();
     var whitespaceCharSet = new CharSet();
     var digitCharSet = new CharSet();
@@ -95,13 +97,22 @@ var handlers = (function () {
     }
 
     function buildBackRefHandler(node, generatorFunctions) {
-        var digit = findChildrenOfType(node, 'DIGIT')[0];
+        var digit = findFirstChildOfType(node, 'DIGIT');
         var index = Number(digit.text);
         return function backRefHandler() {
             var value = captureGroups[index-1];
             if (value === undefined) { throw new Error(`Unknown group: \\${index}`); }
             return value;
         };
+    }
+    function buildSrcBackRefHandler(node, generatorFunctions) {
+      var digit = findFirstChildOfType(node, 'DIGIT');
+      var index = Number(digit.text);
+      return function srcBackRefHandler() {
+          var value = captureGroupsSource[index];
+          if (value === undefined) { throw new Error(`Unknown original text group: {{${index}}}`); }
+          return value;
+      };
     }
     function buildEscMetaCharHandler(node, generatorFunctions) {
       var metachar = findFirstChildOfType(node, 'META_CHAR');
@@ -254,6 +265,7 @@ var handlers = (function () {
         "NON_META_CHAR": buildLiteralGenerator,
         "PARENS" : buildParensGenerator,
         "BACKREF" : buildBackRefHandler,
+        "SRCBACKREF" : buildSrcBackRefHandler,
         "ESC_META_CHAR" : buildEscMetaCharHandler,
         "DOT" :             build_buildCharSetGenerator(baseCharSet, "base"),
         "WHITESPACE" :      build_buildCharSetGenerator(whitespaceCharSet, "whitespace"),
@@ -266,7 +278,7 @@ var handlers = (function () {
     }
 
     return {
-        'apply': function (grammar) {
+        apply: function (grammar) {
             var productionRules = grammar.productionRules;
             productionRules.forEach(function (nonTerminal) {
                 var generatorBuilder = generatorBuilders[nonTerminal.name];
@@ -283,6 +295,10 @@ var handlers = (function () {
           wordCharSet = new CharSet().fromDef(wordCharSetDef).intersection(baseCharSet);
           UNLIMITED = defaultUpperLimit;
           setup_generatorBuilders();
+        },
+        setRangeConfig: function(rangeIndex, originalMatch) {
+          captureGroupsSource = originalMatch;
+          rangeIndexSource = rangeIndex;
         }
     };
 }());

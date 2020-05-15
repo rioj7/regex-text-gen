@@ -8,22 +8,25 @@ function activate(context) {
   var isString = obj => typeof obj === 'string';
 
   context.subscriptions.push(vscode.commands.registerTextEditorCommand('regexTextGen.generateText', (editor, edit, args) => {
-    let originalRegexString = '.*';
+    let originalRegexString = vscode.workspace.getConfiguration('regexTextGen', null).get('defaultOriginalTextRegex');
     let generateRegexString = vscode.workspace.getConfiguration('regexTextGen', null).get('defaultGeneratorRegex');
     let baseCharSet = vscode.workspace.getConfiguration('regexTextGen', null).get('baseCharSet');
     let whitespaceCharSet = vscode.workspace.getConfiguration('regexTextGen', null).get('whitespaceCharSet');
     let digitCharSet = vscode.workspace.getConfiguration('regexTextGen', null).get('digitCharSet');
     let wordCharSet = vscode.workspace.getConfiguration('regexTextGen', null).get('wordCharSet');
     let defaultUpperLimit = vscode.workspace.getConfiguration('regexTextGen', null).get('defaultUpperLimit');
+    let useInputBox = true;
 
     if (args) {
+      originalRegexString = getProperty(args, "originalTextRegex", originalRegexString);
       generateRegexString = getProperty(args, "generatorRegex", generateRegexString);
       baseCharSet = getProperty(args, "baseCharSet", baseCharSet);
       whitespaceCharSet = getProperty(args, "whitespaceCharSet", whitespaceCharSet);
       digitCharSet = getProperty(args, "digitCharSet", digitCharSet);
       wordCharSet = getProperty(args, "wordCharSet", wordCharSet);
       defaultUpperLimit = getProperty(args, "defaultUpperLimit", defaultUpperLimit);
-      }
+      useInputBox = getProperty(args, "useInputBox", false); // for keybindings default is false
+    }
 
     regex_parser.setGeneratorConfig(baseCharSet, whitespaceCharSet, digitCharSet, wordCharSet, defaultUpperLimit);
 
@@ -46,7 +49,8 @@ function activate(context) {
     }
     function generateRange(originalContent, rangeIndex, originalRegex, generateRegex) {
       originalRegex.lastIndex = 0;
-      return generateRegex.generate(rangeIndex, originalContent.match(originalRegex));
+      regex_parser.setRangeConfig(rangeIndex, originalContent.match(originalRegex) || []);
+      return generateRegex.generate();
     }
     function applyPreview(generateRegex) {
       const originalRegex = new RegExp(originalRegexString);
@@ -122,12 +126,23 @@ function activate(context) {
     }
 
     new Promise(resolve => {
-      if (args === undefined) {
+      if (useInputBox) {
         return resolve(vscode.window.showInputBox({
-          placeHolder: '(a|b|c){10}',
-          value: generateRegexString,
-          prompt: 'Generator Regular Expression',
-          validateInput: inputChanged,
+          placeHolder: '.*',
+          value: originalRegexString,
+          prompt: 'Match Original Text Regular Expression'
+        })
+        .then( orgRegexString => {
+          if (isString(orgRegexString) && orgRegexString.length > 0) {
+            originalRegexString = orgRegexString;
+            return vscode.window.showInputBox({
+              placeHolder: '(a|b|c){10}',
+              value: generateRegexString,
+              prompt: 'Generator Regular Expression',
+              validateInput: inputChanged
+            });
+          }
+          return undefined; // simulate Escape input box: Generate Regex
         }));
       }
       resolve(makeChanges(generateRegexString, false) // make a preview
