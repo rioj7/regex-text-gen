@@ -160,6 +160,9 @@ var handlers = (function () {
         var previousGenerator = generatorFunctions.pop();
         var numberNode = findChildrenOfType(node, 'NUMBER')[0];
         var count = Number(numberNode.text);
+        if (UNLIMITED < count) {
+            throw new Error(`Invalid regex, minimum (${count}) > upperLimit (${UNLIMITED}) in: ${node.text}`);
+        }
         return function numberOrMoreOfGenerator() {
             return generateForMultiples(previousGenerator, count, UNLIMITED);
         };
@@ -170,9 +173,8 @@ var handlers = (function () {
         var numberNodes = findChildrenOfType(node, 'NUMBER');
         var fromNumber = Number(numberNodes[0].text);
         var toNumber = Number(numberNodes[1].text);
-
         if (toNumber < fromNumber) {
-            throw new Error('Invalid regex, numbers in wrong order in {}');
+            throw new Error(`Invalid regex, numbers in wrong order in: ${node.text}`);
         }
         return function numberRangeOfGenerator() {
             return generateForMultiples(previousGenerator, fromNumber, toNumber);
