@@ -4,10 +4,10 @@
   "description": "Generate text based on Regular Expression (regex)",
   "publisher": "rioj7",
   "license": "MIT",
-  "version": "0.4.1",
+  "version": "0.5.0",
   "engines": {"vscode": "^1.40.0"},
   "categories": ["Other"],
-  "keywords": ["text","generate","regex"],
+  "keywords": ["text","generate","regex","replace"],
   "icon": "images/icon.png",
   "galleryBanner": {"color": "#000080", "theme": "dark"},
   "activationEvents": [
@@ -26,27 +26,33 @@
         "regexTextGen.defaultGeneratorRegex": {
           "type": "string",
           "scope": "resource",
+          "description": "DEPRECATED - use: generatorRegex",
+          "default": "(a|b|c){5,}"
+        },
+        "regexTextGen.generatorRegex": {
+          "type": "string",
+          "scope": "resource",
           "description": "Start of the input box: Generator Regex. default: (a|b|c){5,}",
           "default": "(a|b|c){5,}"
         },
         "regexTextGen.defaultUpperLimit": {
           "type": "integer",
           "scope": "resource",
-          "description": "Upperlimit for repetition qualifiers: *, + and {n,}",
+          "description": "Upperlimit for repetition qualifiers: *, + and {n,}. default: 10",
           "default": 10
         },
         "regexTextGen.baseCharSet": {
           "type": "array",
           "scope": "resource",
           "items": { "type": "string" },
-          "description": "Character set \".\" will generate from. Array of: single unicode char (\"\\u0009\") or unicode character range (\"a-\\u007a\"). Default: HT + Basic Latin",
+          "description": "Character set \".\" will generate from. Array of: single unicode char (\"\\u0009\") or unicode character range (\"a-\\u007a\"). Default: HTab + Basic Latin",
           "default": ["\u0009", "\u0020-\u007e"]
         },
         "regexTextGen.whitespaceCharSet": {
           "type": "array",
           "scope": "resource",
           "items": { "type": "string" },
-          "description": "Character set \"\\s\" will generate from. Array of: single unicode char (\"\\u0009\") or unicode character range (\"a-\\u007a\"). Default: HT + SPACE",
+          "description": "Character set \"\\s\" will generate from. Array of: single unicode char (\"\\u0009\") or unicode character range (\"a-\\u007a\"). Default: HTab + SPACE",
           "default": ["\u0009", "\u0020"]
         },
         "regexTextGen.digitCharSet": {
@@ -63,10 +69,10 @@
           "description": "Character set \"\\w\" will generate from. Array of: single unicode char (\"\\u0009\") or unicode character range (\"a-\\u007a\"). Default: 0-9 + a-z + A-Z + UNDERSCORE",
           "default": ["_", "0-9", "a-z", "A-Z"]
         },
-        "regexTextGen.defaultOriginalTextRegex": {
+        "regexTextGen.originalTextRegex": {
           "type": "string",
           "scope": "resource",
-          "description": "Start of the input box: Match Original Text Regex. default: .*",
+          "description": "Start of the input box: Match Original Text Regex (full Javascript syntax). default: .*",
           "default": ".*"
         }
       }

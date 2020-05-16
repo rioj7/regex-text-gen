@@ -6,16 +6,31 @@ function activate(context) {
 
   var getProperty = (obj, prop, deflt) => { return obj.hasOwnProperty(prop) ? obj[prop] : deflt; };
   var isString = obj => typeof obj === 'string';
+  var hasShownConfigDefaultDeprecationMessage = false;
+
+  function showConfigDefaultDeprecationMessage() {
+    if (hasShownConfigDefaultDeprecationMessage) return;
+    hasShownConfigDefaultDeprecationMessage = true;
+    let message = "Setting (Global|Workspace|Folder) has deprecated property: defaultGeneratorRegex.";
+    message += " Modify to use: generatorRegex";
+    vscode.window.showInformationMessage(message);
+  }
 
   context.subscriptions.push(vscode.commands.registerTextEditorCommand('regexTextGen.generateText', (editor, edit, args) => {
-    let originalRegexString = vscode.workspace.getConfiguration('regexTextGen', null).get('defaultOriginalTextRegex');
-    let generateRegexString = vscode.workspace.getConfiguration('regexTextGen', null).get('defaultGeneratorRegex');
-    let baseCharSet = vscode.workspace.getConfiguration('regexTextGen', null).get('baseCharSet');
-    let whitespaceCharSet = vscode.workspace.getConfiguration('regexTextGen', null).get('whitespaceCharSet');
-    let digitCharSet = vscode.workspace.getConfiguration('regexTextGen', null).get('digitCharSet');
-    let wordCharSet = vscode.workspace.getConfiguration('regexTextGen', null).get('wordCharSet');
-    let defaultUpperLimit = vscode.workspace.getConfiguration('regexTextGen', null).get('defaultUpperLimit');
+    let configuration = vscode.workspace.getConfiguration('regexTextGen', null);
+    let originalRegexString = configuration.get('originalTextRegex');
+    let generateRegexString = configuration.get('generatorRegex');
+    let baseCharSet = configuration.get('baseCharSet');
+    let whitespaceCharSet = configuration.get('whitespaceCharSet');
+    let digitCharSet = configuration.get('digitCharSet');
+    let wordCharSet = configuration.get('wordCharSet');
+    let defaultUpperLimit = configuration.get('defaultUpperLimit');
     let useInputBox = true;
+
+    if (configuration.get('defaultGeneratorRegex') !== '(a|b|c){5,}') { // compare with the default value
+      showConfigDefaultDeprecationMessage();
+      generateRegexString = configuration.get('defaultGeneratorRegex');
+    }
 
     if (args) {
       originalRegexString = getProperty(args, "originalTextRegex", originalRegexString);

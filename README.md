@@ -15,6 +15,7 @@ In the Command Palette use the command: `Generate text based on Regular Expressi
 In key bindings use the command: `regexTextGen.generateText`
 
 ## Character Sets
+
 The generated text uses a character set to pick characters for the non-literal constructs: `.`, `\w`, `\s`, `\d`, `\W`, `\S`, `\D`.
 
 We have a base character set, with all the characters allowed, and 3 sub groups for the whitespace (`\s`), word character (`\w`), and digits (`\d`).
@@ -35,9 +36,9 @@ The characters that are not part of the base character set are removed from the 
 
 The settings that can be specified in `settings.json` file or the arguments for key binding are:
 
-* `defaultGeneratorRegex` : a string. Start of the input box: Generator Regex. default: `(a|b|c){5,}`
-* `defaultOriginalTextRegex` : a string. Start of the input box: Match Original Text Regex. default: `.*`
-* `defaultUpperLimit` : an integer. An upper limit for the repeat quantifiers that have no upper limit: `*`, `+`, <code>{<em>n</em>}</code>. default: 10
+* `originalTextRegex` : a string. Start of the input box: Match Original Text Regex. default: `.*`
+* `generatorRegex` : a string. Start of the input box: Generator Regex. default: `(a|b|c){5,}`
+* `defaultUpperLimit` : an integer. An upper limit for the repeat quantifiers that have no upper limit: `*`, `+`, <code>{<em>n</em>,}</code>. default: 10
 * `baseCharSet` : array of strings. Character set `.` will generate from. default: `["\u0009", "\u0020-\u007e"]`
 * `whitespaceCharSet` : array of strings. Character set `\s` will generate from. default: `["\u0009", "\u0020"]`
 * `digitCharSet` : array of strings. Character set `\d` will generate from. default: `["0-9"]`
@@ -45,13 +46,9 @@ The settings that can be specified in `settings.json` file or the arguments for 
 
 For the `args` property of the keybinding also:
 
-* `generatorRegex` : See `defaultGeneratorRegex`
-* `originalTextRegex` : See `defaultOriginalTextRegex`
 * `useInputBox` : (boolean) use the input boxes to modify the regular expressions. default: `false`
 
 For a [key bindings in `keybindings.json`](https://code.visualstudio.com/docs/getstarted/keybindings) the `args` property is an object with the given properties.
-
-The generator regex for a key binding is specified with the property: `generatorRegex`
 
 The property `useInputBox` allows to define different start regular expressions or different character sets.
 
@@ -73,7 +70,7 @@ An example: we use the `whitespaceCharSet` and `digitCharSet` from the `settings
 
 ## Generator Regex syntax
 
-The following regex symbols are recognised.
+The following regex symbols are recognised in the `generatorRegex` regular expression.
 
 <table>
 <tr><th>Symbol</th><th>Description</th><th>Example</th></tr>
@@ -110,9 +107,17 @@ If you want to have a `-` as part of a character range `[]`, start the range wit
 
 ### Original text back reference
 
-The originaly selected text in the range is matched against a regular expression. The captured groups of this match can be used in the generated text with special back references: `{{0}}`, `{{1}}` ... `{{9}}`. Back reference `{{0}}` is all the matched text, this is not always the original text of the selected range. Add `.*` before and after the regex if needed.
+The originaly selected text in the range is matched against a regular expression. This regular expression can use the full Javascript syntax. The captured groups of this match can be used in the generated text with special back references: `{{0}}`, `{{1}}` ... `{{9}}`.
 
-`{{1}}` ... `{{9}}` are the text matched by the specific capture groups of `defaultOriginalTextRegex`/`originalTextRegex`.
+Back reference `{{0}}` is all the matched text, this is not always the original text of the selected range. Add `.*` before and after the regex if needed.
+
+`{{1}}` ... `{{9}}` are the text matched by the specific capture groups of `originalTextRegex`.
+
+If you perform a search in the text based on a regular expression in the Find dialog of VSC and you select 1 or multiple instances you can split these selected ranges with the regular expression `originalTextRegex` and use the captured groups in the replacement string (the generated text). If you don't use the meta characters in the `generatorRegex` you can see this as a two step Find and Replace.
+
+## Known problems
+
+* if the initial generator regular expression (when the input box shows) has an error the preview does not show a change and you don't see the error message. Currently VSC (v1.44.2) shows the prompt `Generator Regular Expression` instead of the error message. To see the error message type a character at the end and remove the character.
 
 ## Credits
 
@@ -130,3 +135,4 @@ I have used parts of the following programs:
 * allow arithmetic on the range index with numbers and operators: + - * / % ( )
 * allow `\w`, `\s`, `\d`, `\W`, `\S`, `\D` inside character ranges `[]`
 * live preview of the captured groups while entering the `originalTextRegex`
+* set flags for the `originalTextRegex`
