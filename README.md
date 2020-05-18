@@ -68,6 +68,22 @@ An example: we use the `whitespaceCharSet` and `digitCharSet` from the `settings
   }
 ```
 
+## Flags of the Original Text Regular Expression
+
+It is possible to set the following flags on the `originalTextRegex` property:
+
+* `i` : ignore case
+* `g` : global search
+* `m` : multi-line search
+
+You specify the flags at the start of the string with: <code>(?<em>flags</em>)</code>
+
+Instead of _flags_ you write any combination of the 3 flags.
+
+Example: `(?ig)[A-Z]+-\d+`
+
+If you add the `g` flag (global) the result of the match on the original text will be different. Read the documentation of [`String.match()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/match#Return_value) at MDN. See also [Original text back reference](#org-back-ref).
+
 ## Generator Regex syntax
 
 The following regex symbols are recognised in the `generatorRegex` regular expression.
@@ -85,7 +101,7 @@ The following regex symbols are recognised in the `generatorRegex` regular expre
 <tr><td><code>{<em>n</em>,<em>m</em>}</code></td><td>range of matches</td><td><code>(a|b|c){1,7}</code></td></tr>
 <tr><td><code>{<em>n</em>,}</code></td><td>lower bounded number of matches</td><td><code>(a|b|c){3,}</code></td></tr>
 <tr><td><code>(<em>r</em>)</code></td><td>capture group</td><td><code>(abc*)</code></td></tr>
-<tr><td><code>\<em>n</em></code></td><td>capturing group backreference</td><td><code>(abc*)XYZ\1</code></td></tr>
+<tr><td><code>\<em>n</em></code></td><td>capture group backreference</td><td><code>(abc*)XYZ\1</code></td></tr>
 <tr><td><code>{{<em>n</em>}}</code></td><td>original text capturing group backreference. <em>n</em>: 0..9</td><td><code>XY-{{1}}-AP</code></td></tr>
 <tr><td><code>\s</code> and <code>\S</code></td><td>whitespace / non-whitespace alias</td><td></td></tr>
 <tr><td><code>\d</code> and <code>\D</code></td><td>digit / non-digit alias</td><td></td></tr>
@@ -105,13 +121,25 @@ The only meta character that needs to be escaped inside a character range `[]` i
 
 If you want to have a `-` as part of a character range `[]`, start the range with a `-`: `[-0-9]` are all the digits plus the `-` character
 
-### Original text back reference
+### Original text back reference {#org-back-ref}
 
-The originaly selected text in the range is matched against a regular expression. This regular expression can use the full Javascript syntax. The captured groups of this match can be used in the generated text with special back references: `{{0}}`, `{{1}}` ... `{{9}}`.
+The originaly selected text in the range is matched against a regular expression. This regular expression can use the full Javascript syntax.
+
+The content of the original text backreference <code>{{<em>n</em>}}</code> depends on the setting of the `g` flag on the `originalTextRegex`.
+
+#### Without `g` flag
+
+The captured groups of the first match can be used in the generated text with special back references: `{{0}}`, `{{1}}` ... `{{9}}`.
 
 Back reference `{{0}}` is all the matched text, this is not always the original text of the selected range. Add `.*` before and after the regex if needed.
 
 `{{1}}` ... `{{9}}` are the text matched by the specific capture groups of `originalTextRegex`.
+
+#### With `g` flag
+
+The first 10 matches of the regular expression in the original text can be used in the generated text with special back references: `{{0}}`, `{{1}}` ... `{{9}}`.
+
+#### Two step Find and Replace
 
 If you perform a search in the text based on a regular expression in the Find dialog of VSC and you select 1 or multiple instances you can split these selected ranges with the regular expression `originalTextRegex` and use the captured groups in the replacement string (the generated text). If you don't use the meta characters in the `generatorRegex` you can see this as a two step Find and Replace.
 
@@ -135,4 +163,3 @@ I have used parts of the following programs:
 * allow arithmetic on the range index with numbers and operators: + - * / % ( )
 * allow `\w`, `\s`, `\d`, `\W`, `\S`, `\D` inside character ranges `[]`
 * live preview of the captured groups while entering the `originalTextRegex`
-* set flags for the `originalTextRegex`

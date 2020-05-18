@@ -68,7 +68,15 @@ function activate(context) {
       return generateRegex.generate();
     }
     function applyPreview(generateRegex) {
-      const originalRegex = new RegExp(originalRegexString);
+      // check if the originalRegexString starts with flag settings
+      let flags = undefined;
+      let orgRegexString = originalRegexString; // make a copy, it is modified
+      let flagsMatch = orgRegexString.match(/^\(\?([img]+)\)/);
+      if (flagsMatch) {
+        flags = flagsMatch[1];
+        orgRegexString = orgRegexString.slice(flagsMatch[0].length);
+      }
+      let originalRegex = new RegExp(orgRegexString, flags);
       let lastOldRange = new vscode.Range(0, 0, 0, 0);
       let lastNewRange = new vscode.Range(0, 0, 0, 0);
       let totalLinesInserted = 0;
