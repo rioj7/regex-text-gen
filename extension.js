@@ -151,6 +151,7 @@ function activate(context) {
     new Promise(resolve => {
       if (useInputBox) {
         return resolve(vscode.window.showInputBox({
+          ignoreFocusOut: true,
           placeHolder: '.*',
           value: originalRegexString,
           prompt: 'Match Original Text Regular Expression'
@@ -159,6 +160,7 @@ function activate(context) {
           if (isString(orgRegexString) && orgRegexString.length > 0) {
             originalRegexString = orgRegexString;
             return vscode.window.showInputBox({
+              ignoreFocusOut: true,
               placeHolder: '(a|b|c){10}',
               value: generateRegexString,
               prompt: 'Generator Regular Expression',

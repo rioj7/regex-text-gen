@@ -90,19 +90,20 @@ The following regex symbols are recognised in the `generatorRegex` regular expre
 
 <table>
 <tr><th>Symbol</th><th>Description</th><th>Example</th></tr>
-<tr><td><code>*</code></td><td>zero or more</td><td><code>abc*</code></td></tr>
-<tr><td><code>+</code></td><td>one or more</td><td><code>abc+</code></td></tr>
-<tr><td><code>?</code></td><td>zero or one</td><td><code>abc?</code></td></tr>
 <tr><td><code>.</code></td><td>any single character</td><td><code>a.b.c</code></td></tr>
 <tr><td><code>[ ]</code></td><td>inclusive character range</td><td><code>[A-C][a-c1-5_$]{,7}</code></td></tr>
 <tr><td><code>[^ ]</code></td><td>exclusive character range</td><td><code>[A-C][^a-c1-5_$]{,7}</code></td></tr>
 <tr><td><code>|</code></td><td>alternatives</td><td><code>car|train|bike</code></td></tr>
-<tr><td><code>{<em>n</em>}</code></td><td>exact number of matches</td><td><code>(a|b|c){5}</code></td></tr>
-<tr><td><code>{<em>n</em>,<em>m</em>}</code></td><td>range of matches</td><td><code>(a|b|c){1,7}</code></td></tr>
-<tr><td><code>{<em>n</em>,}</code></td><td>lower bounded number of matches</td><td><code>(a|b|c){3,}</code></td></tr>
+<tr><td><code>*</code></td><td>zero or more repeats</td><td><code>abc*</code></td></tr>
+<tr><td><code>+</code></td><td>one or more repeats</td><td><code>abc+</code></td></tr>
+<tr><td><code>?</code></td><td>zero or one repeats</td><td><code>abc?</code></td></tr>
+<tr><td><code>{<em>expr</em>}</code></td><td>exact number of repeats</td><td><code>(a|b|c){5}</code></td></tr>
+<tr><td><code>{<em>expr</em>,<em>expr</em>}</code></td><td>range of repeats</td><td><code>(a|b|c){1,7}</code></td></tr>
+<tr><td><code>{<em>expr</em>,}</code></td><td>lower bounded number of repeats</td><td><code>(a|b|c){3,}</code></td></tr>
 <tr><td><code>(<em>r</em>)</code></td><td>capture group</td><td><code>(abc*)</code></td></tr>
 <tr><td><code>\<em>n</em></code></td><td>capture group backreference</td><td><code>(abc*)XYZ\1</code></td></tr>
-<tr><td><code>{{<em>n</em>}}</code></td><td>original text capturing group backreference. <em>n</em>: 0..9</td><td><code>XY-{{1}}-AP</code></td></tr>
+<tr><td><code>{{<em>expr</em>}}</code></td><td>original text (capturing group) backreference.</td><td><code>XY-{{1}}-AP</code></td></tr>
+<tr><td><code>{{=<em>expr</em>}}</code></td><td>numeric value expression.</td><td><code>{{=i+1}}: XY</code></td></tr>
 <tr><td><code>\s</code> and <code>\S</code></td><td>whitespace / non-whitespace alias</td><td></td></tr>
 <tr><td><code>\d</code> and <code>\D</code></td><td>digit / non-digit alias</td><td></td></tr>
 <tr><td><code>\w</code> and <code>\W</code></td><td>word / non-word alias</td><td></td></tr>
@@ -121,23 +122,39 @@ The only meta character that needs to be escaped inside a character range `[]` i
 
 If you want to have a `-` as part of a character range `[]`, start the range with a `-`: `[-0-9]` are all the digits plus the `-` character
 
+### Expressions
+
+The expressions allowed are numeric calculations with the following characters and variables:
+
+* `0..9` : to construct integer numbers
+* `+-*/%()` : mathematical operators and grouping
+* `i` : the 0-based index of the current range/selection
+* `j[]` : `j` is an array with the repeat counter values (0-based). `j[0]` is the repeat counter value of the repeat closest to the right of the expression. `j[1]` is the next closest to the right. This makes it possible to copy/paste parts of a Generator Expression and not worry about which repeat it is. Most likely you want the closest repeat.<br/>Because the expressions are evaluated by a JavaScript engine the variable `j` can be used without square brackets. Depending on the content of `j` the result will be converted to:
+    * `[]` : the empty array is converted to `""` (empty string). Depending on the operator used it can be converted to `0` (numeric zero)
+    * <code>[<em>n</em>, ...]</code> : it has 1 or more values is converted to a string with the values separated by `,`. If it contains only 1 value depending on the operator it can be converted to the numeric value. The array `[5,2,3]` is converted to the string: `5,2,3`
+* `S` : is the number of elements in the result of matching the `originalTextRegex` to the content of the selection. See also [Original text back reference](#org-back-ref). This makes it possible to loop over all matched parts if you have specified the `g` flag. For example to show all matched parts with a `-` as separator and numbered starting at 1: `({{=j[0]+1}}:{{j[0]}}-){S}`
+
 ### Original text back reference {#org-back-ref}
 
-The originaly selected text in the range is matched against a regular expression. This regular expression can use the full Javascript syntax.
+The originaly selected text in the range is matched against a regular expression with [`String.match()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/match#Return_value). This regular expression can use the full Javascript syntax.
 
-The content of the original text backreference <code>{{<em>n</em>}}</code> depends on the setting of the `g` flag on the `originalTextRegex`.
+The content of the original text backreference <code>{{<em>expr</em>}}</code> depends on the setting of the `g` flag on the `originalTextRegex`.
 
 #### Without `g` flag
 
-The captured groups of the first match can be used in the generated text with special back references: `{{0}}`, `{{1}}` ... `{{9}}`.
+The captured groups of the first match can be used in the generated text with special back references.
 
 Back reference `{{0}}` is all the matched text, this is not always the original text of the selected range. Add `.*` before and after the regex if needed.
 
-`{{1}}` ... `{{9}}` are the text matched by the specific capture groups of `originalTextRegex`.
+`{{1}}` ... are the text matched by the specific capture groups of `originalTextRegex`.
+
+There is no limit to the number of capture groups you can define in `originalTextRegex`.
+
+By using the variable `S` in a repeat specification, `{S-1}`, you can loop over all the captured groups: `{{j[0]+1}}{S-1}`
 
 #### With `g` flag
 
-The first 10 matches of the regular expression in the original text can be used in the generated text with special back references: `{{0}}`, `{{1}}` ... `{{9}}`.
+Any of the matches of the regular expression in the original text can be used in the generated text with special back references: <code>{{<em>expr</em>}}</code> . By using the variable `S` in a repeat specification, `{S}`, you can loop over all the matches.
 
 #### Two step Find and Replace
 
@@ -159,7 +176,6 @@ I have used parts of the following programs:
 
 * non-capturing groups `(?:)` in the Generator Regex because the number of back references is limited to 9
 * a command-variable command where the source is also one of the arguments
-* `{{i}}` : special reference - is the 0-based index of the range
-* allow arithmetic on the range index with numbers and operators: + - * / % ( )
 * allow `\w`, `\s`, `\d`, `\W`, `\S`, `\D` inside character ranges `[]`
 * live preview of the captured groups while entering the `originalTextRegex`
+* reference named groups in the `originalTextRegex`

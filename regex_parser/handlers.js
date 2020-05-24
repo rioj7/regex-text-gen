@@ -61,6 +61,7 @@ var handlers = (function () {
     var captureGroups = [];
     var captureGroupsSource = [];
     var rangeIndexSource = 0;
+    var loopCounts = [];
     var baseCharSet = new CharSet();
     var whitespaceCharSet = new CharSet();
     var digitCharSet = new CharSet();
@@ -106,12 +107,19 @@ var handlers = (function () {
         };
     }
     function buildSrcBackRefHandler(node, generatorFunctions) {
-      var digit = findFirstChildOfType(node, 'DIGIT');
-      var index = Number(digit.text);
+      var exprFunction = getExpressionFunctions(node)[0];
       return function srcBackRefHandler() {
+          var index = exprFunction(rangeIndexSource, loopCounts, captureGroupsSource.length);
           var value = captureGroupsSource[index];
-          if (value === undefined) { throw new Error(`Unknown original text group: {{${index}}}`); }
+          if (value === undefined) { throw new Error(`Unknown original text group: {{${node.text}}} => {{${index}}}`); }
           return value;
+      };
+    }
+    function buildNumericExprHandler(node, generatorFunctions) {
+      var exprFunction = getExpressionFunctions(node)[0];
+      return function numericExpressionHandler() {
+          var value = exprFunction(rangeIndexSource, loopCounts, captureGroupsSource.length);
+          return String(value);
       };
     }
     function buildEscMetaCharHandler(node, generatorFunctions) {
@@ -122,7 +130,12 @@ var handlers = (function () {
     function generateForMultiples(generator, minTimes, maxTimes) {
         const n = randomIntFromInterval(minTimes, maxTimes);
         let result = [];
-        for (let i = 0; i < n; ++i) { result.push(generator.call(generator)); }
+        loopCounts.unshift(0);
+        for (let i = 0; i < n; ++i) {
+          loopCounts[0] = i
+          result.push(generator.call(generator));
+        }
+        loopCounts.shift();
         return result.join('');
     }
 
@@ -149,35 +162,35 @@ var handlers = (function () {
 
     function buildNumberOfGenerator(node, generatorFunctions) {
         var previousGenerator = generatorFunctions.pop();
-        var numberNode = findChildrenOfType(node, 'NUMBER')[0];
-        var count = Number(numberNode.text);
+        var exprFunction = getExpressionFunctions(node)[0];
         return function numberOfGenerator() {
-            return generateForMultiples(previousGenerator, count, count);
+          var count = exprFunction(rangeIndexSource, loopCounts, captureGroupsSource.length);
+          return generateForMultiples(previousGenerator, count, count);
         };
     }
 
     function buildNumberOrMoreOfGenerator(node, generatorFunctions) {
         var previousGenerator = generatorFunctions.pop();
-        var numberNode = findChildrenOfType(node, 'NUMBER')[0];
-        var count = Number(numberNode.text);
-        if (UNLIMITED < count) {
-            throw new Error(`Invalid regex, minimum (${count}) > upperLimit (${UNLIMITED}) in: ${node.text}`);
-        }
+        var exprFunction = getExpressionFunctions(node)[0];
         return function numberOrMoreOfGenerator() {
-            return generateForMultiples(previousGenerator, count, UNLIMITED);
+          var count = exprFunction(rangeIndexSource, loopCounts, captureGroupsSource.length);
+          if (UNLIMITED < count) {
+            throw new Error(`Invalid regex, minimum (${count}) > upperLimit (${UNLIMITED}) in: ${node.text}`);
+          }
+          return generateForMultiples(previousGenerator, count, UNLIMITED);
         };
     }
 
     function buildNumberRangeOfGenerator(node, generatorFunctions) {
         var previousGenerator = generatorFunctions.pop();
-        var numberNodes = findChildrenOfType(node, 'NUMBER');
-        var fromNumber = Number(numberNodes[0].text);
-        var toNumber = Number(numberNodes[1].text);
-        if (toNumber < fromNumber) {
-            throw new Error(`Invalid regex, numbers in wrong order in: ${node.text}`);
-        }
+        var exprFunctions = getExpressionFunctions(node);
         return function numberRangeOfGenerator() {
-            return generateForMultiples(previousGenerator, fromNumber, toNumber);
+          var fromNumber, toNumber;
+          [fromNumber, toNumber] = exprFunctions.map( func => func(rangeIndexSource, loopCounts, captureGroupsSource.length) );
+          if (toNumber < fromNumber) {
+            throw new Error(`Invalid regex, numbers in wrong order in: ${node.text}`);
+          }
+          return generateForMultiples(previousGenerator, fromNumber, toNumber);
         };
     }
 
@@ -200,6 +213,22 @@ var handlers = (function () {
         let found = findFirstChildOfType(child, typeName);
         if (found) return found;
       }
+    }
+    function getExpressionFunctions(node) {
+      // return findChildrenOfType(node, 'EXPRESSION').map( expr => Function(`"use strict";return (function calcexpr(i,j,S) { return ${expr.text} })`)());
+      return findChildrenOfType(node, 'EXPRESSION').map( expr => {
+        try {
+          return Function(`"use strict";return (function calcexpr(i,j,S) {
+            let val = ${expr.text};
+            if (isNaN(val)) { throw new Error("Error calculating: ${expr.text}"); }
+            return val;
+          })`)();
+        }
+        catch (ex) {
+          let message = ex.message;
+          if (message.indexOf("';'") >= 0) { message = "Incomplete expression"; }
+          throw new Error(`${message} in ${expr.text}`); }
+      });
     }
     function charSpecChar_to_Def(node) {
       if (node.children[0].matched.name === 'NON_META_CHAR_SPEC') {
@@ -267,7 +296,8 @@ var handlers = (function () {
         "NON_META_CHAR": buildLiteralGenerator,
         "PARENS" : buildParensGenerator,
         "BACKREF" : buildBackRefHandler,
-        "SRCBACKREF" : buildSrcBackRefHandler,
+        "SRCBACKREF_EXPR" : buildSrcBackRefHandler,
+        "NUMERIC_EXPR" : buildNumericExprHandler,
         "ESC_META_CHAR" : buildEscMetaCharHandler,
         "DOT" :             build_buildCharSetGenerator(baseCharSet, "base"),
         "WHITESPACE" :      build_buildCharSetGenerator(whitespaceCharSet, "whitespace"),
@@ -301,6 +331,7 @@ var handlers = (function () {
         setRangeConfig: function(rangeIndex, originalMatch) {
           captureGroupsSource = originalMatch;
           rangeIndexSource = rangeIndex;
+          loopCounts = [];
         }
     };
 }());
