@@ -82,7 +82,7 @@ Instead of _flags_ you write any combination of the 3 flags.
 
 Example: `(?ig)[A-Z]+-\d+`
 
-If you add the `g` flag (global) the result of the match on the original text will be different. Read the documentation of [`String.match()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/match#Return_value) at MDN. See also [Original text back reference](#org-back-ref).
+If you add the `g` flag (global) the result of the match on the original text will be different. Read the documentation of [`String.match()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/match#Return_value) at MDN. See also [Original text back reference](#original-text-back-reference).
 
 ## Generator Regex syntax
 
@@ -124,7 +124,15 @@ If you want to have a `-` as part of a character range `[]`, start the range wit
 
 ### Expressions
 
-The expressions allowed are numeric calculations with the following characters and variables:
+The expressions allowed are numeric calculations. Because of Javascript some that use the variable `j` have a string result.
+
+An expression can be used to:
+
+* determine the value(s) of a repeat, e.q. <code>{<em>expr</em>,<em>expr</em>}</code>
+* get the capture group or match of the `originalTextRegex` applied to the selected text of the range, <code>{{<em>expr</em>}}</code>
+* output a numeric value, <code>{{=<em>expr</em>}}</code>
+
+The following characters and variables are allowed:
 
 * `0..9` : to construct integer numbers
 * `+-*/%()` : mathematical operators and grouping
@@ -132,9 +140,9 @@ The expressions allowed are numeric calculations with the following characters a
 * `j[]` : `j` is an array with the repeat counter values (0-based). `j[0]` is the repeat counter value of the repeat closest to the right of the expression. `j[1]` is the next closest to the right. This makes it possible to copy/paste parts of a Generator Expression and not worry about which repeat it is. Most likely you want the closest repeat.<br/>Because the expressions are evaluated by a JavaScript engine the variable `j` can be used without square brackets. Depending on the content of `j` the result will be converted to:
     * `[]` : the empty array is converted to `""` (empty string). Depending on the operator used it can be converted to `0` (numeric zero)
     * <code>[<em>n</em>, ...]</code> : it has 1 or more values is converted to a string with the values separated by `,`. If it contains only 1 value depending on the operator it can be converted to the numeric value. The array `[5,2,3]` is converted to the string: `5,2,3`
-* `S` : is the number of elements in the result of matching the `originalTextRegex` to the content of the selection. See also [Original text back reference](#org-back-ref). This makes it possible to loop over all matched parts if you have specified the `g` flag. For example to show all matched parts with a `-` as separator and numbered starting at 1: `({{=j[0]+1}}:{{j[0]}}-){S}`
+* `S` : is the number of elements in the result of matching the `originalTextRegex` to the content of the selection. See also [Original text back reference](#original-text-back-reference). This makes it possible to loop over all matched parts if you have specified the `g` flag. For example to show all matched parts with a `-` as separator and numbered starting at 1: `({{=j[0]+1}}:{{j[0]}}-){S}`
 
-### Original text back reference {#org-back-ref}
+### Original text back reference
 
 The originaly selected text in the range is matched against a regular expression with [`String.match()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/match#Return_value). This regular expression can use the full Javascript syntax.
 
@@ -162,7 +170,7 @@ If you perform a search in the text based on a regular expression in the Find di
 
 ## Known problems
 
-* if the initial generator regular expression (when the input box shows) has an error the preview does not show a change and you don't see the error message. Currently VSC (v1.44.2) shows the prompt `Generator Regular Expression` instead of the error message. To see the error message type a character at the end and remove the character.
+* if the initial generator regular expression (when the input box shows) has an error the preview does not show a change and you don't see the error message. Currently VSC (v1.44.2) shows the prompt `Generator Regular Expression` instead of the error message. To see the error message type a character at the end and remove the character. The [filed issue](https://github.com/microsoft/vscode/issues/97913) for this problem.
 
 ## Credits
 
