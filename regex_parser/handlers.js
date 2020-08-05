@@ -60,6 +60,7 @@ var handlers = (function () {
     var UNLIMITED = 10;
     var captureGroups = [];
     var captureGroupsSource = [];
+    var captureGroupsSourceNumbers = [];
     var rangeIndexSource = 0;
     var loopCounts = [];
     var baseCharSet = new CharSet();
@@ -109,7 +110,7 @@ var handlers = (function () {
     function buildSrcBackRefHandler(node, generatorFunctions) {
       var exprFunction = getExpressionFunctions(node)[0];
       return function srcBackRefHandler() {
-          var index = exprFunction(rangeIndexSource, loopCounts, captureGroupsSource.length);
+          var index = exprFunction(rangeIndexSource, loopCounts, captureGroupsSource.length, captureGroupsSourceNumbers);
           var value = captureGroupsSource[index];
           if (value === undefined) { throw new Error(`Unknown original text group: {{${node.text}}} => {{${index}}}`); }
           return value;
@@ -118,7 +119,7 @@ var handlers = (function () {
     function buildNumericExprHandler(node, generatorFunctions) {
       var exprFunction = getExpressionFunctions(node)[0];
       return function numericExpressionHandler() {
-          var value = exprFunction(rangeIndexSource, loopCounts, captureGroupsSource.length);
+          var value = exprFunction(rangeIndexSource, loopCounts, captureGroupsSource.length, captureGroupsSourceNumbers);
           return String(value);
       };
     }
@@ -164,7 +165,7 @@ var handlers = (function () {
         var previousGenerator = generatorFunctions.pop();
         var exprFunction = getExpressionFunctions(node)[0];
         return function numberOfGenerator() {
-          var count = exprFunction(rangeIndexSource, loopCounts, captureGroupsSource.length);
+          var count = exprFunction(rangeIndexSource, loopCounts, captureGroupsSource.length, captureGroupsSourceNumbers);
           return generateForMultiples(previousGenerator, count, count);
         };
     }
@@ -173,7 +174,7 @@ var handlers = (function () {
         var previousGenerator = generatorFunctions.pop();
         var exprFunction = getExpressionFunctions(node)[0];
         return function numberOrMoreOfGenerator() {
-          var count = exprFunction(rangeIndexSource, loopCounts, captureGroupsSource.length);
+          var count = exprFunction(rangeIndexSource, loopCounts, captureGroupsSource.length, captureGroupsSourceNumbers);
           if (UNLIMITED < count) {
             throw new Error(`Invalid regex, minimum (${count}) > upperLimit (${UNLIMITED}) in: ${node.text}`);
           }
@@ -218,7 +219,7 @@ var handlers = (function () {
       // return findChildrenOfType(node, 'EXPRESSION').map( expr => Function(`"use strict";return (function calcexpr(i,j,S) { return ${expr.text} })`)());
       return findChildrenOfType(node, 'EXPRESSION').map( expr => {
         try {
-          return Function(`"use strict";return (function calcexpr(i,j,S) {
+          return Function(`"use strict";return (function calcexpr(i,j,S,N) {
             let val = ${expr.text};
             if (isNaN(val)) { throw new Error("Error calculating: ${expr.text}"); }
             return val;
@@ -330,6 +331,7 @@ var handlers = (function () {
         },
         setRangeConfig: function(rangeIndex, originalMatch) {
           captureGroupsSource = originalMatch;
+          captureGroupsSourceNumbers = originalMatch.map ( s => {let val = Number(s); return isNaN(val) ? 0 : val; });
           rangeIndexSource = rangeIndex;
           loopCounts = [];
         }

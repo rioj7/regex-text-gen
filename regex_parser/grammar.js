@@ -59,7 +59,7 @@ var grammar = (function () {
         "NUMBER              : DIGIT DIGITS",
         "SRCBACKREF_EXPR     : { { EXPRESSION } }",
         "NUMERIC_EXPR        : { { = EXPRESSION } }",
-        "EXPR_CHAR           : ij[]+-*/%()S",
+        "EXPR_CHAR           : ij[]+-*/%()SN",
         "EXPR_CHAR           : DIGIT",
         "EXPR_CHARS          : EXPR_CHAR EXPR_CHARS",
         "EXPR_CHARS          : ",

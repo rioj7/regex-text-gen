@@ -141,6 +141,7 @@ The following characters and variables are allowed:
     * `[]` : the empty array is converted to `""` (empty string). Depending on the operator used it can be converted to `0` (numeric zero)
     * <code>[<em>n</em>, ...]</code> : it has 1 or more values is converted to a string with the values separated by `,`. If it contains only 1 value depending on the operator it can be converted to the numeric value. The array `[5,2,3]` is converted to the string: `5,2,3`
 * `S` : is the number of elements in the result of matching the `originalTextRegex` to the content of the selection. See also [Original text back reference](#original-text-back-reference). This makes it possible to loop over all matched parts if you have specified the `g` flag. For example to show all matched parts with a `-` as separator and numbered starting at 1: `({{=j[0]+1}}:{{j[0]}}-){S}`
+* `N[]` : `N` is an array of numbers. Every element of the result of matching the `originalTextRegex` to the content of the selection is converted to a number with the JavaScript function [`Number()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number). If a captured group can't be converted to a number that element in the array will be `0`.
 
 ### Original text back reference
 
@@ -187,3 +188,4 @@ I have used parts of the following programs:
 * allow `\w`, `\s`, `\d`, `\W`, `\S`, `\D` inside character ranges `[]`
 * live preview of the captured groups while entering the `originalTextRegex`
 * reference named groups in the `originalTextRegex`
+* specify an optional rounding of the Expression, in case the input is a float or we use `/`
