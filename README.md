@@ -103,6 +103,7 @@ The following regex symbols are recognised in the `generatorRegex` regular expre
 <tr><td><code>(<em>r</em>)</code></td><td>capture group</td><td><code>(abc*)</code></td></tr>
 <tr><td><code>\<em>n</em></code></td><td>capture group backreference</td><td><code>(abc*)XYZ\1</code></td></tr>
 <tr><td><code>{{<em>expr</em>}}</code></td><td>original text (capturing group) backreference.</td><td><code>XY-{{1}}-AP</code></td></tr>
+<tr><td><code>{{<em>expr</em>:<em>modifier</em>}}</code></td><td><a hrfa="#modified-original-text-backreference">modified original text (capturing group) backreference</a>.</td><td><code>{{1:first}}///{{1:-first}}</code></td></tr>
 <tr><td><code>{{=<em>expr</em>}}</code></td><td>numeric value expression.</td><td><code>{{=i+1}}: XY</code></td></tr>
 <tr><td><code>\s</code> and <code>\S</code></td><td>whitespace / non-whitespace alias</td><td></td></tr>
 <tr><td><code>\d</code> and <code>\D</code></td><td>digit / non-digit alias</td><td></td></tr>
@@ -140,10 +141,10 @@ The following characters and variables are allowed:
 * `j[]` : `j` is an array with the repeat counter values (0-based). `j[0]` is the repeat counter value of the repeat closest to the right of the expression. `j[1]` is the next closest to the right. This makes it possible to copy/paste parts of a Generator Expression and not worry about which repeat it is. Most likely you want the closest repeat.<br/>Because the expressions are evaluated by a JavaScript engine the variable `j` can be used without square brackets. Depending on the content of `j` the result will be converted to:
     * `[]` : the empty array is converted to `""` (empty string). Depending on the operator used it can be converted to `0` (numeric zero)
     * <code>[<em>n</em>, ...]</code> : it has 1 or more values is converted to a string with the values separated by `,`. If it contains only 1 value depending on the operator it can be converted to the numeric value. The array `[5,2,3]` is converted to the string: `5,2,3`
-* `S` : is the number of elements in the result of matching the `originalTextRegex` to the content of the selection. See also [Original text back reference](#original-text-back-reference). This makes it possible to loop over all matched parts if you have specified the `g` flag. For example to show all matched parts with a `-` as separator and numbered starting at 1: `({{=j[0]+1}}:{{j[0]}}-){S}`
+* `S` : is the number of elements in the result of matching the `originalTextRegex` to the content of the selection. See also [Original text back reference](#original-text-backreference). This makes it possible to loop over all matched parts if you have specified the `g` flag. For example to show all matched parts with a `-` as separator and numbered starting at 1:<br/>`({{=j[0]+1}}:{{j[0]}}-){S}`
 * `N[]` : `N` is an array of numbers. Every element of the result of matching the `originalTextRegex` to the content of the selection is converted to a number with the JavaScript function [`Number()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number). If a captured group can't be converted to a number that element in the array will be `0`.
 
-### Original text back reference
+### Original text backreference
 
 The originaly selected text in the range is matched against a regular expression with [`String.match()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/match#Return_value). This regular expression can use the full Javascript syntax.
 
@@ -165,9 +166,35 @@ By using the variable `S` in a repeat specification, `{S-1}`, you can loop over 
 
 Any of the matches of the regular expression in the original text can be used in the generated text with special back references: <code>{{<em>expr</em>}}</code> . By using the variable `S` in a repeat specification, `{S}`, you can loop over all the matches.
 
-#### Two step Find and Replace
+### Modified original text backreference
 
-If you perform a search in the text based on a regular expression in the Find dialog of VSC and you select 1 or multiple instances you can split these selected ranges with the regular expression `originalTextRegex` and use the captured groups in the replacement string (the generated text). If you don't use the meta characters in the `generatorRegex` you can see this as a two step Find and Replace.
+An original backreference can be modified  with the following modifiers: <code>{{<em>expr</em>:<em>modifier</em>}}</code>
+
+* `:first` : Instead of taking the captured group of the current source range, take the corresponding captured group of the **first** source range. 
+* `:-first` : If the captured group of the current source range starts with the corresponding captured group of the **first** source range, only use what is additional to the captured group of the current source range.
+
+For example if you want to add indented comments to a number of lines, and use the first line indentation to place the comment you can use the following keybinding:
+
+```
+  {
+    "key": "ctrl+shift+f7",  // or any other key combination
+    "when": "editorTextFocus",
+    "command": "regexTextGen.generateText",
+    "args": {
+      "originalTextRegex": "([ \\t]*)(.*)",
+      "generatorRegex" : "{{1:first}}/// {{1:-first}}{{2}}",
+      "useInputBox" : false
+    }
+  }
+```
+
+`///` is the comment (doxygen) characters we want to add to the beginning of the lines. Empty lines will be handled correctly, because both capture groups are empty.
+
+If you want to use the keybinging as a template and make changes you can set `useInputBox` to `true` or delete that line.
+
+### Two step Find and Replace
+
+If you perform a search based on a regular expression in the Find dialog of VSC and you select 1 or multiple instances you can split these selected ranges with the regular expression `originalTextRegex` and use the captured groups in the replacement string (the generated text). If you don't use the meta characters in the `generatorRegex` you can see this as a two step Find and Replace.
 
 ## Known problems
 

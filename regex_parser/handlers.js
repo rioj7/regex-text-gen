@@ -61,6 +61,7 @@ var handlers = (function () {
     var captureGroups = [];
     var captureGroupsSource = [];
     var captureGroupsSourceNumbers = [];
+    var captureGroupsSourceFirst = [];
     var rangeIndexSource = 0;
     var loopCounts = [];
     var baseCharSet = new CharSet();
@@ -111,8 +112,25 @@ var handlers = (function () {
       var exprFunction = getExpressionFunctions(node)[0];
       return function srcBackRefHandler() {
           var index = exprFunction(rangeIndexSource, loopCounts, captureGroupsSource.length, captureGroupsSourceNumbers);
+          let modFirst = findFirstChildOfType(node, 'BACKREF_MOD_FIRST');
+          let modMinFirst = findFirstChildOfType(node, 'BACKREF_MOD_MIN_FIRST');
+          let firstSourceGroup = undefined;
+          if (modFirst || modMinFirst) {
+            if (rangeIndexSource === 0) {
+              captureGroupsSourceFirst = captureGroupsSource.slice();
+            }
+            firstSourceGroup = captureGroupsSourceFirst[index];
+          }
           var value = captureGroupsSource[index];
-          if (value === undefined) { throw new Error(`Unknown original text group: {{${node.text}}} => {{${index}}}`); }
+          if (value === undefined) { throw new Error(`Unknown original text group: ${node.text} => {{${index}}}`); }
+          if (modFirst && firstSourceGroup) {
+            value = firstSourceGroup
+          }
+          if (modMinFirst && firstSourceGroup) {
+            if (value.startsWith(firstSourceGroup)) {
+              value = value.slice(firstSourceGroup.length)
+            }
+          }
           return value;
       };
     }

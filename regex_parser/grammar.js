@@ -1,4 +1,27 @@
 'use strict';
+
+if (!String.prototype.splitCount) {
+  String.prototype.splitCount = function (separator, count) {
+    if (typeof(separator) === "string") {
+      separator = new RegExp(separator, 'g');
+    } else { // construct a Regexp with the global flag
+      separator = new RegExp(separator.source, separator.flags.indexOf('g') !== -1 ? separator.flags : separator.flags + 'g');
+    }
+    let cursor = 0;
+    let splitCount = 0;
+    let match;
+    separator.lastIndex = 0;
+    let result = [];
+    while ((match = separator.exec(this)) !== null) {
+      result.push(this.slice(cursor, match.index));
+      cursor = separator.lastIndex;
+      if (++splitCount === count) { break; }
+    }
+    result.push(this.slice(cursor));
+    return result;
+  };
+}
+
 var grammar = (function () {
     var PRODUCTION_RULES_TXT = [
         "REGEX               : TERM",
@@ -57,13 +80,19 @@ var grammar = (function () {
         "DIGITS              : DIGIT DIGITS",
         "DIGITS              :",
         "NUMBER              : DIGIT DIGITS",
-        "SRCBACKREF_EXPR     : { { EXPRESSION } }",
+        "SRCBACKREF_EXPR     : { { EXPRESSION OPT_BACKREF_MOD } }",
         "NUMERIC_EXPR        : { { = EXPRESSION } }",
         "EXPR_CHAR           : ij[]+-*/%()SN",
         "EXPR_CHAR           : DIGIT",
         "EXPR_CHARS          : EXPR_CHAR EXPR_CHARS",
         "EXPR_CHARS          : ",
         "EXPRESSION          : EXPR_CHAR EXPR_CHARS",
+        "OPT_BACKREF_MOD     : : BACKREF_MOD",
+        "OPT_BACKREF_MOD     : ",
+        "BACKREF_MOD         : BACKREF_MOD_FIRST",
+        "BACKREF_MOD         : BACKREF_MOD_MIN_FIRST",
+        "BACKREF_MOD_FIRST       : f i r s t",
+        "BACKREF_MOD_MIN_FIRST   : - f i r s t",
         "BACKREF             : \\ DIGIT",
         "ESC_META_CHAR       : \\ META_CHAR",
         "ESC_META_CHAR_SPEC  : \\ META_CHAR_SPEC",
@@ -77,7 +106,7 @@ var grammar = (function () {
 
     var productionRuleMap = {};
     PRODUCTION_RULES_TXT.forEach(function (productionRuleText) {
-        var parts = productionRuleText.split(':', 2).map(function (s) {
+        var parts = productionRuleText.splitCount(':', 1).map(function (s) {
             return s.trim();
         });
         var nonTerminalName = parts[0];
@@ -115,7 +144,8 @@ var grammar = (function () {
             },
             toString: function () {
                 return (notPrefix ? 'not one of: ' : '') + '"' + text + '"';
-            }
+            },
+            text
         };
     }
 
