@@ -84,6 +84,7 @@ var grammar = (function () {
         "NUMERIC_EXPR        : { { = EXPRESSION } }",
         "EXPR_CHAR           : ij[]+-*/%()SN",
         "EXPR_CHAR           : DIGIT",
+        "EXPR_CHAR           : DOT",
         "EXPR_CHARS          : EXPR_CHAR EXPR_CHARS",
         "EXPR_CHARS          : ",
         "EXPRESSION          : EXPR_CHAR EXPR_CHARS",

@@ -135,7 +135,7 @@ An expression can be used to:
 
 The following characters and variables are allowed:
 
-* `0..9` : to construct integer numbers
+* `0..9` and `.` : to construct numbers: integer and floating point
 * `+-*/%()` : mathematical operators and grouping
 * `i` : the 0-based index of the current range/selection
 * `j[]` : `j` is an array with the repeat counter values (0-based). `j[0]` is the repeat counter value of the repeat closest to the right of the expression. `j[1]` is the next closest to the right. This makes it possible to copy/paste parts of a Generator Expression and not worry about which repeat it is. Most likely you want the closest repeat.<br/>Because the expressions are evaluated by a JavaScript engine the variable `j` can be used without square brackets. Depending on the content of `j` the result will be converted to:
@@ -195,6 +195,51 @@ If you want to use the keybinging as a template and make changes you can set `us
 ### Two step Find and Replace
 
 If you perform a search based on a regular expression in the Find dialog of VSC and you select 1 or multiple instances you can split these selected ranges with the regular expression `originalTextRegex` and use the captured groups in the replacement string (the generated text). If you don't use the meta characters in the `generatorRegex` you can see this as a two step Find and Replace.
+
+## Examples
+
+### SVG: Translate text
+
+Some tools wrap a `<text>` tag in an SVG with a `<g>` tag with a `translate` transform. This is not needed and we can add this translation to the `x` and `y` coordinates of the `<text>` tag:
+
+Find regex and Original text regex:
+
+```
+<g transform="translate\((-?[\d.]+),(-?[\d.]+)\)"><text x="(-?[\d.]+)" y="(-?[\d.]+)"
+```
+
+Generate regex
+
+```
+<g><text x="{{=N[1]+N[3]}}" y="{{=N[2]+N[4]}}"
+```
+
+Now you can with the help of `Emmet: Balance (outward)` select the `<text>` tags, cut the selection, `Emmet: Balance (outward)` again to select the `<g>` tags and then Paste to place the `<text>` tags back.
+
+### SVG: Translate a `<path>` tag `d` property so it can be used in a `<defs>`
+
+If you have a `<path>` with absolute coordinates in the `d` property you have to translate the path to the origin.
+
+1. Select the complete `d` property
+1. Open the Find Dialog
+1. Enter the **Find regex** and select **Find in Selection** button (<kbd>Alt</kbd>+<kbd>L</kbd>)
+1. Select all occurrences with: <kbd>Alt</kbd>+<kbd>Enter</kbd> (focus is now in the editor)
+1. Execute command: **Generate text based on Regular Expression (regex)**
+1. Enter the **Original text regex** (same as Find regex)
+1. Enter the **Generate regex**
+1. Change the translation value placeholders
+
+Find regex and Original text regex:
+
+```
+(-?\d+(?:\.\d+))[, ](-?\d+(?:\.\d+))
+```
+
+Generate regex
+
+```
+{{=N[1]-0}},{{=N[2]-0}}
+```
 
 ## Known problems
 
