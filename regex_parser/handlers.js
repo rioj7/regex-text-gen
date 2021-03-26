@@ -1,12 +1,19 @@
 'use strict';
 const { regex } = require('./regex');
 
-/**
- * @param {number} min
- * @param {number} max
- */
+/** @param {number} min @param {number} max */
 function randomIntFromInterval(min, max) { // min and max included
   return Math.floor(Math.random() * (max - min + 1) + min);
+}
+
+/**  @param {number} value @param {number} fixedDigits @param {boolean} simplify */
+function numberSimplify(value, fixedDigits, simplify) {
+  if (Number.isInteger(value) && simplify) { return value.toString(); }
+  var str = value.toFixed(fixedDigits);
+  if (simplify) {
+    while (str.endsWith('0')) { str = str.substring(0, str.length-1); }
+  }
+  return str;
 }
 
 class CharSet {
@@ -136,9 +143,17 @@ var handlers = (function () {
     }
     function buildNumericExprHandler(node, generatorFunctions) {
       var exprFunction = getExpressionFunctions(node)[0];
+      var fixedDigits = undefined;
+      var simplify = false;
+      findChildrenOfType(node, 'EXPR_MOD').forEach(exprMod => {
+        if (exprMod.text.startsWith('fixed(')) {
+          fixedDigits = Number(findFirstChildOfType(exprMod, 'NUMBER').text);
+        }
+        if (exprMod.text.startsWith('simplify')) { simplify = true; }
+      });
       return function numericExpressionHandler() {
           var value = exprFunction(rangeIndexSource, loopCounts, captureGroupsSource.length, captureGroupsSourceNumbers);
-          return String(value);
+          return fixedDigits === undefined ? String(value) : numberSimplify(value, fixedDigits, simplify);
       };
     }
     function buildEscMetaCharHandler(node, generatorFunctions) {

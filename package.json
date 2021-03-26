@@ -4,7 +4,7 @@
   "description": "Generate text based on Regular Expression (regex)",
   "publisher": "rioj7",
   "license": "MIT",
-  "version": "0.9.2",
+  "version": "0.10.0",
   "engines": {"vscode": "^1.40.0"},
   "categories": ["Other"],
   "keywords": ["text","generate","regex","replace"],

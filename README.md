@@ -105,6 +105,7 @@ The following regex symbols are recognised in the `generatorRegex` regular expre
 <tr><td><code>{{<em>expr</em>}}</code></td><td>original text (capturing group) backreference.</td><td><code>XY-{{1}}-AP</code></td></tr>
 <tr><td><code>{{<em>expr</em>:<em>modifier</em>}}</code></td><td><a href="#modified-original-text-backreference">modified original text (capturing group) backreference</a>.</td><td><code>{{1:first}}///{{1:-first}}</code></td></tr>
 <tr><td><code>{{=<em>expr</em>}}</code></td><td>numeric value expression.</td><td><code>{{=i+1}}: XY</code></td></tr>
+<tr><td><code>{{=<em>expr</em>:<em>modifier</em>}}</code></td><td>numeric value expression with output modifier.</td><td><code>{{=N[1]*3.14159:fixed(4)}}</code></td></tr>
 <tr><td><code>\s</code> and <code>\S</code></td><td>whitespace / non-whitespace alias</td><td></td></tr>
 <tr><td><code>\d</code> and <code>\D</code></td><td>digit / non-digit alias</td><td></td></tr>
 <tr><td><code>\w</code> and <code>\W</code></td><td>word / non-word alias</td><td></td></tr>
@@ -132,6 +133,7 @@ An expression can be used to:
 * determine the value(s) of a repeat, e.q. <code>{<em>expr</em>,<em>expr</em>}</code>
 * get the capture group or match of the `originalTextRegex` applied to the selected text of the range, <code>{{<em>expr</em>}}</code>
 * output a numeric value, <code>{{=<em>expr</em>}}</code>
+* output a numeric value with modifiers, <code>{{=<em>expr</em>:<em>modifier</em>}}</code>
 
 The following characters and variables are allowed:
 
@@ -143,6 +145,9 @@ The following characters and variables are allowed:
     * <code>[<em>n</em>, ...]</code> : it has 1 or more values is converted to a string with the values separated by `,`. If it contains only 1 value depending on the operator it can be converted to the numeric value. The array `[5,2,3]` is converted to the string: `5,2,3`
 * `S` : is the number of elements in the result of matching the `originalTextRegex` to the content of the selection. See also [Original text back reference](#original-text-backreference). This makes it possible to loop over all matched parts if you have specified the `g` flag. For example to show all matched parts with a `-` as separator and numbered starting at 1:<br/>`({{=j[0]+1}}:{{j[0]}}-){S}`
 * `N[]` : `N` is an array of numbers. Every element of the result of matching the `originalTextRegex` to the content of the selection is converted to a number with the JavaScript function [`Number()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number). If a captured group can't be converted to a number that element in the array will be `0`.
+* <code>:<em>modifier</em></code> : the numeric value, <code>{{=<em>expr</em>}}</code>, can have 1 or more modifiers. The modifiers you can add are:
+    * <code>:fixed(<em>number</em>)</code> : display the value with _number_ decimal places. Example: using `{{=120+3.45:fixed(4)}}` gives `123.4500`
+    * <code>:simplify</code> : display the value with the trailing `0`'s and decimal point removed. Only used in combination with <code>:fixed(<em>number</em>)</code>. Example: using `{{=120+3.45:simplify:fixed(4)}}` gives `123.45`
 
 ### Original text backreference
 
@@ -222,17 +227,19 @@ If you have a `<path>` with absolute coordinates in the `d` property you have to
 
 1. Select the complete `d` property
 1. Open the Find Dialog
-1. Enter the **Find regex** and select **Find in Selection** button (<kbd>Alt</kbd>+<kbd>L</kbd>)
+1. Select **Find in Selection** button (<kbd>Alt</kbd>+<kbd>L</kbd>)
+1. Enter the **Find regex**
 1. Select all occurrences with: <kbd>Alt</kbd>+<kbd>Enter</kbd> (focus is now in the editor)
 1. Execute command: **Generate text based on Regular Expression (regex)**
 1. Enter the **Original text regex** (same as Find regex)
 1. Enter the **Generate regex**
 1. Change the translation value placeholders
+1. Accept the edits with <kbd>Enter</kbd> or terminate with <kbd>Esc</kbd>
 
 Find regex and Original text regex:
 
 ```
-(-?\d+(?:\.\d+))[, ](-?\d+(?:\.\d+))
+(-?[\d.]+)[, ](-?[\d.]+)
 ```
 
 Generate regex
@@ -260,4 +267,3 @@ I have used parts of the following programs:
 * allow `\w`, `\s`, `\d`, `\W`, `\S`, `\D` inside character ranges `[]`
 * live preview of the captured groups while entering the `originalTextRegex`
 * reference named groups in the `originalTextRegex`
-* specify an optional rounding of the Expression, in case the input is a float or we use `/`
