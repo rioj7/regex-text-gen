@@ -10,8 +10,9 @@ function randomIntFromInterval(min, max) { // min and max included
 function numberSimplify(value, fixedDigits, simplify) {
   if (Number.isInteger(value) && simplify) { return value.toString(); }
   var str = value.toFixed(fixedDigits);
-  if (simplify) {
+  if (simplify && (fixedDigits > 0)) {
     while (str.endsWith('0')) { str = str.substring(0, str.length-1); }
+    if (str.endsWith('.')) { str = str.substring(0, str.length-1); }
   }
   return str;
 }
