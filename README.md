@@ -34,15 +34,29 @@ The characters that are not part of the base character set are removed from the 
 
 ## Settings and arguments
 
-The settings that can be specified in `settings.json` file or the arguments for key binding are:
+The settings that can be specified in `settings.json` file or the arguments for key binding (remove `regexTextGen.`) are:
 
-* `originalTextRegex` : a string. Start of the input box: Match Original Text Regex. default: `.*`
-* `generatorRegex` : a string. Start of the input box: Generator Regex. default: `(a|b|c){5,}`
-* `defaultUpperLimit` : an integer. An upper limit for the repeat quantifiers that have no upper limit: `*`, `+`, <code>{<em>n</em>,}</code>. default: 10
-* `baseCharSet` : array of strings. Character set `.` will generate from. default: `["\u0009", "\u0020-\u007e"]`
-* `whitespaceCharSet` : array of strings. Character set `\s` will generate from. default: `["\u0009", "\u0020"]`
-* `digitCharSet` : array of strings. Character set `\d` will generate from. default: `["0-9"]`
-* `wordCharSet` : array of strings. Character set `\w` will generate from. default: `["_", "0-9", "a-z", "A-Z"]`
+* `regexTextGen.originalTextRegex` : a string. Start of the input box: Match Original Text Regex. default: `.*`
+* `regexTextGen.generatorRegex` : a string. Start of the input box: Generator Regex. default: `(a|b|c){5,}`
+* `regexTextGen.defaultUpperLimit` : an integer. An upper limit for the repeat quantifiers that have no upper limit: `*`, `+`, <code>{<em>n</em>,}</code>. default: 10
+* `regexTextGen.baseCharSet` : array of strings. Character set `.` will generate from. default: `["\u0009", "\u0020-\u007e"]`
+* `regexTextGen.whitespaceCharSet` : array of strings. Character set `\s` will generate from. default: `["\u0009", "\u0020"]`
+* `regexTextGen.digitCharSet` : array of strings. Character set `\d` will generate from. default: `["0-9"]`
+* `regexTextGen.wordCharSet` : array of strings. Character set `\w` will generate from. default: `["_", "0-9", "a-z", "A-Z"]`
+* `regexTextGen.predefined` : If you have settings you regularly use you can define them in this setting. It is an object where the key is used as the label in a Quick Pick List (allows fuzzy search), the `originalTextRegex` is the description and the `generatorRegex` is shown on a separate line. The value for each key is an object with these properties:
+    * `originalTextRegex`
+    * `generatorRegex`
+    * `defaultUpperLimit`
+    * `baseCharSet`
+    * `whitespaceCharSet`
+    * `digitCharSet`
+    * `wordCharSet`
+
+    If any property is not defined it uses the value of <code>regexTextGen.<em>propertyName</em></code>.
+
+    If you have defined `regexTextGen.generatorRegex` those settings will also be an entry in the QP List.
+
+    An [example of `regexTextGen.predefined`](#examples-predefined-in-the-settings)
 
 For the `args` property of the keybinding also:
 
@@ -248,6 +262,27 @@ Generate regex
 {{=N[1]-0}},{{=N[2]-0}}
 ```
 
+### Examples predefined in the settings
+
+Be aware of the escaping of `\` and `"`
+
+```
+  "regexTextGen.predefined": {
+    "SVG: Translate text" : {
+      "originalTextRegex": "<g transform=\"translate\\((-?[\\d.]+),(-?[\\d.]+)\\)\"><text x=\"(-?[\\d.]+)\" y=\"(-?[\\d.]+)\"",
+      "generatorRegex": "<g><text x=\"{{=N[1]+N[3]}}\" y=\"{{=N[2]+N[4]}}\""
+    },
+    "SVG: Translate a <path> tag d property": {
+      "originalTextRegex": "(-?[\\d.]+)[, ](-?[\\d.]+)",
+      "generatorRegex": "{{=N[1]-0}},{{=N[2]-0}}"
+    },
+    "SVG: round numbers": {
+      "originalTextRegex": "(-?\\d+\\.\\d+)",
+      "generatorRegex": "{{=N[1]:fixed(1):simplify}}"
+    }
+  }
+```
+
 ## Known problems
 
 * if the initial generator regular expression (when the input box shows) has an error the preview does not show a change and you don't see the error message. Currently VSC (v1.44.2) shows the prompt `Generator Regular Expression` instead of the error message. To see the error message type a character at the end and remove the character. The [filed issue](https://github.com/microsoft/vscode/issues/97913) for this problem.
@@ -259,6 +294,12 @@ I have used parts of the following programs:
 * Gus Hurovich for developing the [live preview for: `Emmet: Wrap with abbreviation`](https://github.com/microsoft/vscode/pull/45092)
 * Yukai Huang for extracting the preview code to use in an extension: [`map-replace.js`](https://github.com/Yukaii/map-replace.js)
 * Rob Dawson for: [JavaScript Regular Expression Parser](http://codebox.org.uk/pages/regex-parser)
+
+## Release Notes
+
+### v0.11.0 `regexTextGen.predefined` setting
+### v0.10.0 `{{=expr:modifier}}` `:fixed(n)` and `:simplify`
+### v0.9.2 float numbers in expressions
 
 ## TODO
 

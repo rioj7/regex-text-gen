@@ -4,7 +4,7 @@
   "description": "Generate text based on Regular Expression (regex)",
   "publisher": "rioj7",
   "license": "MIT",
-  "version": "0.10.1",
+  "version": "0.11.0",
   "engines": {"vscode": "^1.40.0"},
   "categories": ["Other"],
   "keywords": ["text","generate","regex","replace"],
@@ -27,7 +27,8 @@
           "type": "string",
           "scope": "resource",
           "description": "DEPRECATED - use: generatorRegex",
-          "default": "(a|b|c){5,}"
+          "default": "(a|b|c){5,}",
+          "deprecationMessage": "use: generatorRegex"
         },
         "regexTextGen.generatorRegex": {
           "type": "string",
@@ -74,6 +75,51 @@
           "scope": "resource",
           "description": "Start of the input box: Match Original Text Regex (full Javascript syntax). default: .*",
           "default": ".*"
+        },
+        "regexTextGen.predefined": {
+          "type": "object",
+          "scope": "resource",
+          "description": "Object with parameters for predefined cases",
+          "default": {},
+          "patternProperties": {
+            "^.+$": {
+              "type": "object",
+              "properties": {
+                "originalTextRegex": {
+                  "type": "string",
+                  "description": "Start of the input box: Match Original Text Regex (full Javascript syntax). default: .*"
+                },
+                "generatorRegex": {
+                  "type": "string",
+                  "description": "Start of the input box: Generator Regex. default: (a|b|c){5,}"
+                },
+                "defaultUpperLimit": {
+                  "type": "integer",
+                  "description": "Upperlimit for repetition qualifiers: *, + and {n,}. default: 10"
+                },
+                "baseCharSet": {
+                  "type": "array",
+                  "items": { "type": "string" },
+                  "description": "Character set \".\" will generate from. Array of: single unicode char (\"\\u0009\") or unicode character range (\"a-\\u007a\"). Default: HTab + Basic Latin"
+                },
+                "whitespaceCharSet": {
+                  "type": "array",
+                  "items": { "type": "string" },
+                  "description": "Character set \"\\s\" will generate from. Array of: single unicode char (\"\\u0009\") or unicode character range (\"a-\\u007a\"). Default: HTab + SPACE"
+                },
+                "digitCharSet": {
+                  "type": "array",
+                  "items": { "type": "string" },
+                  "description": "Character set \"\\d\" will generate from. Array of: single unicode char (\"\\u0009\") or unicode character range (\"a-\\u007a\"). Default: 0-9"
+                },
+                "wordCharSet": {
+                  "type": "array",
+                  "items": { "type": "string" },
+                  "description": "Character set \"\\w\" will generate from. Array of: single unicode char (\"\\u0009\") or unicode character range (\"a-\\u007a\"). Default: 0-9 + a-z + A-Z + UNDERSCORE"
+                }
+              }
+            }
+          }
         }
       }
     }

@@ -2,6 +2,40 @@
 const vscode = require('vscode');
 const { regex_parser } = require('./regex_parser/parser');
 
+class Settings {
+  constructor() {
+    this.originalTextRegex = undefined;
+    this.generatorRegex = undefined;
+    this.baseCharSet = undefined;
+    this.whitespaceCharSet = undefined;
+    this.digitCharSet = undefined;
+    this.wordCharSet = undefined;
+    this.defaultUpperLimit = undefined;
+    this.useInputBox = true;
+    this.predefined = {};
+  }
+  updateBy(callback) {
+    this.originalTextRegex = callback('originalTextRegex', this.originalTextRegex);
+    this.generatorRegex = callback('generatorRegex', this.generatorRegex);
+    this.baseCharSet = callback('baseCharSet', this.baseCharSet);
+    this.whitespaceCharSet = callback('whitespaceCharSet', this.whitespaceCharSet);
+    this.digitCharSet = callback('digitCharSet', this.digitCharSet);
+    this.wordCharSet = callback('wordCharSet', this.wordCharSet);
+    this.defaultUpperLimit = callback('defaultUpperLimit', this.defaultUpperLimit);
+    this.useInputBox = callback('useInputBox', this.useInputBox);
+    this.predefined = callback('predefined', this.predefined);
+  }
+}
+
+function convertProxyToObject(proxy) {
+  let obj = {};
+  for (const key in proxy) {
+    if (!proxy.hasOwnProperty(key)) { return; }
+    obj[key] = proxy[key];
+  }
+  return obj;
+}
+
 function activate(context) {
 
   var getProperty = (obj, prop, deflt) => { return obj.hasOwnProperty(prop) ? obj[prop] : deflt; };
@@ -16,34 +50,45 @@ function activate(context) {
     vscode.window.showInformationMessage(message);
   }
 
-  context.subscriptions.push(vscode.commands.registerTextEditorCommand('regexTextGen.generateText', (editor, edit, args) => {
+  context.subscriptions.push(vscode.commands.registerTextEditorCommand('regexTextGen.generateText', async (editor, edit, args) => {
     let configuration = vscode.workspace.getConfiguration('regexTextGen', null);
-    let originalRegexString = configuration.get('originalTextRegex');
-    let generateRegexString = configuration.get('generatorRegex');
-    let baseCharSet = configuration.get('baseCharSet');
-    let whitespaceCharSet = configuration.get('whitespaceCharSet');
-    let digitCharSet = configuration.get('digitCharSet');
-    let wordCharSet = configuration.get('wordCharSet');
-    let defaultUpperLimit = configuration.get('defaultUpperLimit');
-    let useInputBox = true;
+    let settings = new Settings();
+    settings.updateBy( name => configuration.get(name) )
+    settings.useInputBox = true;
 
     if (configuration.get('defaultGeneratorRegex') !== '(a|b|c){5,}') { // compare with the default value
       showConfigDefaultDeprecationMessage();
-      generateRegexString = configuration.get('defaultGeneratorRegex');
+      settings.generatorRegex = configuration.get('defaultGeneratorRegex');
     }
 
     if (args) {
-      originalRegexString = getProperty(args, "originalTextRegex", originalRegexString);
-      generateRegexString = getProperty(args, "generatorRegex", generateRegexString);
-      baseCharSet = getProperty(args, "baseCharSet", baseCharSet);
-      whitespaceCharSet = getProperty(args, "whitespaceCharSet", whitespaceCharSet);
-      digitCharSet = getProperty(args, "digitCharSet", digitCharSet);
-      wordCharSet = getProperty(args, "wordCharSet", wordCharSet);
-      defaultUpperLimit = getProperty(args, "defaultUpperLimit", defaultUpperLimit);
-      useInputBox = getProperty(args, "useInputBox", false); // for keybindings default is false
+      settings.useInputBox = false; // for keybindings default is false
+      settings.updateBy( (name, value) => getProperty(args, name, value) );
     }
-
-    regex_parser.setGeneratorConfig(baseCharSet, whitespaceCharSet, digitCharSet, wordCharSet, defaultUpperLimit);
+    // settings.predefined = convertProxyToObject(settings.predefined);
+    let predefined = settings.predefined;
+    settings.predefined = undefined;
+    let qpItems = [];
+    const addToQPItems = (key, keySettings) => {
+      const qpItem = {...settings, ...keySettings};
+      qpItem.label = key;
+      qpItem.description = qpItem.originalTextRegex;
+      qpItem.detail = qpItem.generatorRegex;
+      qpItems.push(qpItem);
+    };
+    for (const key in predefined) {
+      if (!predefined.hasOwnProperty(key)) { return; }
+      if (qpItems.length == 0) { addToQPItems('default', {}); }
+      addToQPItems(key, predefined[key]);
+    }
+    if (qpItems.length > 0) {
+      let predefPick = await new Promise(resolve => {
+        resolve(vscode.window.showQuickPick(qpItems));
+      });
+      if (predefPick === undefined) { return; }
+      settings = predefPick;
+    }
+    regex_parser.setGeneratorConfig(settings);
 
     let rangesToReplace = editor.selections.sort((a, b) => { return a.start.compareTo(b.start); }).map(selection => {
       let rangeToReplace = new vscode.Range(selection.start, selection.end);
@@ -68,9 +113,9 @@ function activate(context) {
       return generateRegex.generate();
     }
     function applyPreview(generateRegex) {
-      // check if the originalRegexString starts with flag settings
+      // check if the originalTextRegex starts with flag settings
       let flags = undefined;
-      let orgRegexString = originalRegexString; // make a copy, it is modified
+      let orgRegexString = settings.originalTextRegex; // make a copy, it is modified
       let flagsMatch = orgRegexString.match(/^\(\?([img]+)\)/);
       if (flagsMatch) {
         flags = flagsMatch[1];
@@ -149,20 +194,20 @@ function activate(context) {
     }
 
     new Promise(resolve => {
-      if (useInputBox) {
+      if (settings.useInputBox) {
         return resolve(vscode.window.showInputBox({
           ignoreFocusOut: true,
           placeHolder: '.*',
-          value: originalRegexString,
+          value: settings.originalTextRegex,
           prompt: 'Match Original Text Regular Expression'
         })
         .then( orgRegexString => {
           if (isString(orgRegexString) && orgRegexString.length > 0) {
-            originalRegexString = orgRegexString;
+            settings.originalTextRegex = orgRegexString;
             return vscode.window.showInputBox({
               ignoreFocusOut: true,
               placeHolder: '(a|b|c){10}',
-              value: generateRegexString,
+              value: settings.generatorRegex,
               prompt: 'Generator Regular Expression',
               validateInput: inputChanged
             });
@@ -170,10 +215,10 @@ function activate(context) {
           return undefined; // simulate Escape input box: Generate Regex
         }));
       }
-      resolve(makeChanges(generateRegexString, false) // make a preview
+      resolve(makeChanges(settings.generatorRegex, false) // make a preview
           .then( e => {
             if (isString(e)) { throw e; }  // reject Promise
-            return generateRegexString;
+            return settings.generatorRegex;
           }));
     })
     .then( generateRegexString => {

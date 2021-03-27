@@ -355,12 +355,12 @@ var handlers = (function () {
             });
         },
         startGenerator: buildStartGenerator(),
-        setGeneratorConfig: function(baseCharSetDef, whitespaceCharSetDef, digitCharSetDef, wordCharSetDef, defaultUpperLimit) {
-          baseCharSet = new CharSet().fromDef(baseCharSetDef);
-          whitespaceCharSet = new CharSet().fromDef(whitespaceCharSetDef).intersection(baseCharSet);
-          digitCharSet = new CharSet().fromDef(digitCharSetDef).intersection(baseCharSet);
-          wordCharSet = new CharSet().fromDef(wordCharSetDef).intersection(baseCharSet);
-          UNLIMITED = defaultUpperLimit;
+        setGeneratorConfig: function(settings) {
+          baseCharSet = new CharSet().fromDef(settings.baseCharSet);
+          whitespaceCharSet = new CharSet().fromDef(settings.whitespaceCharSet).intersection(baseCharSet);
+          digitCharSet = new CharSet().fromDef(settings.digitCharSet).intersection(baseCharSet);
+          wordCharSet = new CharSet().fromDef(settings.wordCharSet).intersection(baseCharSet);
+          UNLIMITED = settings.defaultUpperLimit;
           setup_generatorBuilders();
         },
         setRangeConfig: function(rangeIndex, originalMatch) {

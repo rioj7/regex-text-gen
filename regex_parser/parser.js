@@ -96,8 +96,8 @@ var parser = (function (grammar) {
             }
             return regex(rootNode, handlers.startGenerator);
         },
-        setGeneratorConfig: function(baseCharSet, whitespaceCharSet, digitCharSet, wordCharSet, defaultUpperLimit) {
-          handlers.setGeneratorConfig(baseCharSet, whitespaceCharSet, digitCharSet, wordCharSet, defaultUpperLimit);
+        setGeneratorConfig: function(settings) {
+          handlers.setGeneratorConfig(settings);
           handlers.apply(grammar);
         },
         setRangeConfig: function (rangeIndex, originalMatch) {
