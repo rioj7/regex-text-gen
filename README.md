@@ -253,8 +253,10 @@ If you have a `<path>` with absolute coordinates in the `d` property you have to
 Find regex and Original text regex:
 
 ```
-(-?[\d.]+)[, ](-?[\d.]+)
+(-?[\d.]+)(?:[, ])(-?[\d.]+)
 ```
+
+The non-capturing group `(?:)` is only needed in this Markdown file to [prevent detection of a Markdown link](https://github.com/microsoft/vscode/issues/103846).
 
 Generate regex
 
