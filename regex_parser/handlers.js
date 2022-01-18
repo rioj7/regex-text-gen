@@ -145,16 +145,22 @@ var handlers = (function () {
     function buildNumericExprHandler(node, generatorFunctions) {
       var exprFunction = getExpressionFunctions(node)[0];
       var fixedDigits = undefined;
+      var size = undefined;
       var simplify = false;
       findChildrenOfType(node, 'EXPR_MOD').forEach(exprMod => {
         if (exprMod.text.startsWith('fixed(')) {
           fixedDigits = Number(findFirstChildOfType(exprMod, 'NUMBER').text);
         }
+        if (exprMod.text.startsWith('size(')) {
+          size = Number(findFirstChildOfType(exprMod, 'NUMBER').text);
+        }
         if (exprMod.text.startsWith('simplify')) { simplify = true; }
       });
       return function numericExpressionHandler() {
           var value = exprFunction(rangeIndexSource, loopCounts, captureGroupsSource.length, captureGroupsSourceNumbers);
-          return fixedDigits === undefined ? String(value) : numberSimplify(value, fixedDigits, simplify);
+          value = fixedDigits === undefined ? String(value) : numberSimplify(value, fixedDigits, simplify);
+          if (size !== undefined) { value = String(value).padStart(size, '0'); }
+          return value;
       };
     }
     function buildEscMetaCharHandler(node, generatorFunctions) {

@@ -97,6 +97,7 @@ var grammar = (function () {
         "OPT_EXPR_MODS       : : EXPR_MOD OPT_EXPR_MODS",
         "OPT_EXPR_MODS       : ",
         "EXPR_MOD            : f i x e d ( NUMBER )",
+        "EXPR_MOD            : s i z e ( NUMBER )",
         "EXPR_MOD            : s i m p l i f y",
         "BACKREF             : \\ DIGIT",
         "ESC_META_CHAR       : \\ META_CHAR",
