@@ -253,11 +253,7 @@ If you have a `<path>` with absolute coordinates in the `d` property you have to
 
 Find regex and Original text regex:
 
-```
-(-?[\d.]+)(?:[, ])(-?[\d.]+)
-```
-
-The non-capturing group `(?:)` is only needed in this Markdown file to [prevent detection of a Markdown link](https://github.com/microsoft/vscode/issues/103846).
+<pre><code>(-?[\d.]+)&lsqb;, &rsqb;(-?[\d.]+)</code></pre>
 
 Generate regex
 
@@ -269,22 +265,20 @@ Generate regex
 
 Be aware of the escaping of `\` and `"`
 
-```
-  "regexTextGen.predefined": {
+<pre><code>  "regexTextGen.predefined": {
     "SVG: Translate text" : {
-      "originalTextRegex": "<g transform=\"translate\\((-?[\\d.]+),(-?[\\d.]+)\\)\"><text x=\"(-?[\\d.]+)\" y=\"(-?[\\d.]+)\"",
-      "generatorRegex": "<g><text x=\"{{=N[1]+N[3]}}\" y=\"{{=N[2]+N[4]}}\""
+      "originalTextRegex": "&lt;g transform=\"translate\\((-?[\\d.]+),(-?[\\d.]+)\\)\"&gt;&lt;text x=\"(-?[\\d.]+)\" y=\"(-?[\\d.]+)\"",
+      "generatorRegex": "&lt;g&gt;&lt;text x=\"{{=N[1]+N[3]}}\" y=\"{{=N[2]+N[4]}}\""
     },
-    "SVG: Translate a <path> tag d property": {
-      "originalTextRegex": "(-?[\\d.]+)[, ](-?[\\d.]+)",
+    "SVG: Translate a &lt;path&gt; tag d property": {
+      "originalTextRegex": "(-?[\\d.]+)&lsqb;, &rsqb;(-?[\\d.]+)",
       "generatorRegex": "{{=N[1]-0}},{{=N[2]-0}}"
     },
     "SVG: round numbers": {
       "originalTextRegex": "(-?\\d+\\.\\d+)",
       "generatorRegex": "{{=N[1]:fixed(1):simplify}}"
     }
-  }
-```
+  }</code></pre>
 
 ## Known problems
 
