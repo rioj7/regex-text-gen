@@ -147,6 +147,8 @@ var handlers = (function () {
       var fixedDigits = undefined;
       var size = undefined;
       var simplify = false;
+      var capitals = false;
+      var radix = 10;
       findChildrenOfType(node, 'EXPR_MOD').forEach(exprMod => {
         if (exprMod.text.startsWith('fixed(')) {
           fixedDigits = Number(findFirstChildOfType(exprMod, 'NUMBER').text);
@@ -154,11 +156,20 @@ var handlers = (function () {
         if (exprMod.text.startsWith('size(')) {
           size = Number(findFirstChildOfType(exprMod, 'NUMBER').text);
         }
+        if (exprMod.text.startsWith('radix(')) {
+          radix = Number(findFirstChildOfType(exprMod, 'NUMBER').text);
+        }
         if (exprMod.text.startsWith('simplify')) { simplify = true; }
+        if (exprMod.text.startsWith('ABC')) { capitals = true; }
       });
       return function numericExpressionHandler() {
           var value = exprFunction(rangeIndexSource, loopCounts, captureGroupsSource.length, captureGroupsSourceNumbers);
-          value = fixedDigits === undefined ? String(value) : numberSimplify(value, fixedDigits, simplify);
+          if (radix !== 10) {
+            value = Number(value.toFixed(0)).toString(radix);
+            if (capitals) { value = value.toUpperCase(); }
+          } else {
+            value = fixedDigits === undefined ? String(value) : numberSimplify(value, fixedDigits, simplify);
+          }
           if (size !== undefined) { value = String(value).padStart(size, '0'); }
           return value;
       };

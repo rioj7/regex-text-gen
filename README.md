@@ -163,6 +163,8 @@ The following characters and variables are allowed:
     * <code>:fixed(<em>number</em>)</code> : display the value with _number_ decimal places. Example: using `{{=120+3.45:fixed(4)}}` gives `123.4500`
     * <code>:simplify</code> : display the value with the trailing `0`'s and decimal point removed. Only used in combination with <code>:fixed(<em>number</em>)</code>. Example: using `{{=120+3.45:simplify:fixed(4)}}` gives `123.45`
     * <code>:size(<em>number</em>)</code> : display the value padded left with `0` till the requested size. Can be combined with `fixed` modifier. Example: using `{{=i+1:size(4)}}` gives `0001`, `0002`, ...
+    * <code>:radix(<em>number</em>)</code> : display the value in the specified radix (`2` .. `36`) (default: `10`).
+    * <code>:ABC</code> : Use capital characters `A-Z` for radix > 10.
 
 ### Original text backreference
 
@@ -294,6 +296,7 @@ I have used parts of the following programs:
 
 ## Release Notes
 
+### v0.13.0 `:radix(n)` and `ABC` modifier for numeric expressions
 ### v0.12.0 `:size(n)` modifier for numeric expressions
 ### v0.11.0 `regexTextGen.predefined` setting
 ### v0.10.0 `{{=expr:modifier}}` `:fixed(n)` and `:simplify`
