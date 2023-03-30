@@ -294,14 +294,6 @@ I have used parts of the following programs:
 * Yukai Huang for extracting the preview code to use in an extension: [`map-replace.js`](https://github.com/Yukaii/map-replace.js)
 * Rob Dawson for: [JavaScript Regular Expression Parser](http://codebox.org.uk/pages/regex-parser)
 
-## Release Notes
-
-### v0.13.0 `:radix(n)` and `ABC` modifier for numeric expressions
-### v0.12.0 `:size(n)` modifier for numeric expressions
-### v0.11.0 `regexTextGen.predefined` setting
-### v0.10.0 `{{=expr:modifier}}` `:fixed(n)` and `:simplify`
-### v0.9.2 float numbers in expressions
-
 ## TODO
 
 * non-capturing groups `(?:)` in the Generator Regex because the number of back references is limited to 9
