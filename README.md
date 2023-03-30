@@ -36,7 +36,7 @@ The characters that are not part of the base character set are removed from the 
 
 The settings that can be specified in `settings.json` file or the arguments for key binding (remove `regexTextGen.`) are:
 
-* `regexTextGen.originalTextRegex` : a string. Start of the input box: Match Original Text Regex. default: `.*`
+* `regexTextGen.originalTextRegex` : a string. Start of the input box: Match Original Text Regex. default: `(.*)`
 * `regexTextGen.generatorRegex` : a string. Start of the input box: Generator Regex. default: `(a|b|c){5,}`
 * `regexTextGen.defaultUpperLimit` : an integer. An upper limit for the repeat quantifiers that have no upper limit: `*`, `+`, <code>{<em>n</em>,}</code>. default: 10
 * `regexTextGen.baseCharSet` : array of strings. Character set `.` will generate from. default: `["\u0009", "\u0020-\u007e"]`

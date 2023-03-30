@@ -73,8 +73,8 @@
         "regexTextGen.originalTextRegex": {
           "type": "string",
           "scope": "resource",
-          "description": "Start of the input box: Match Original Text Regex (full Javascript syntax). default: .*",
-          "default": ".*"
+          "description": "Start of the input box: Match Original Text Regex (full Javascript syntax). default: (.*)",
+          "default": "(.*)"
         },
         "regexTextGen.predefined": {
           "type": "object",
