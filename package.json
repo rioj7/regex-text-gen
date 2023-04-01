@@ -124,7 +124,8 @@
       }
     }
   },
-  "main": "./extension.js",
+  "main": "./regex-text-gen.js",
+  "browser": "./regex-text-gen.js",
   "homepage": "https://github.com/rioj7/regex-text-gen",
   "bugs": {
     "url": "https://github.com/rioj7/regex-text-gen/issues"
