@@ -50,7 +50,9 @@ function activate(context) {
     vscode.window.showInformationMessage(message);
   }
 
-  context.subscriptions.push(vscode.commands.registerTextEditorCommand('regexTextGen.generateText', async (editor, edit, args) => {
+  context.subscriptions.push(vscode.commands.registerCommand('regexTextGen.generateText', async args => {
+    let editor = vscode.window.activeTextEditor;
+    if (!editor) { return; }
     let configuration = vscode.workspace.getConfiguration('regexTextGen', null);
     let settings = new Settings();
     settings.updateBy( name => configuration.get(name) )
@@ -171,7 +173,7 @@ function activate(context) {
         }
       }, { undoStopBefore: false, undoStopAfter: false });
     }
-    function makeChanges(generateRegexString, definitive) {
+    async function makeChanges(generateRegexString, definitive) {
       let generateRegex, error;
       [generateRegex, error] = validateRegex(generateRegexString);
       if (error)       { return revertPreview().then( () => error ); }
@@ -179,13 +181,13 @@ function activate(context) {
 
       // keep current preview result but add undo stops
       let currentContent = rangesToReplace.map(range => editor.document.getText(range.previewRange) );
-      return revertPreview().then( () => {
-        return editor.edit(builder => {
-          for (let i = 0; i < rangesToReplace.length; ++i) {
-            builder.replace(rangesToReplace[i].previewRange, currentContent[i]);
-          }
-        });
-      }).then( () => error );
+      await revertPreview();
+      await editor.edit(builder => {
+        for (let i = 0; i < rangesToReplace.length; ++i) {
+          builder.replace(rangesToReplace[i].previewRange, currentContent[i]);
+        }
+      });
+      return error;
     }
     function inputChanged(generateRegexString) {
       return makeChanges(generateRegexString, false).then( e => {
@@ -194,6 +196,11 @@ function activate(context) {
       } );
     }
 
+    if (!settings.useInputBox) {
+      await makeChanges(settings.generatorRegex, false); // make a preview
+      await makeChanges(settings.generatorRegex, true);
+      return 'Finish';
+    }
     new Promise(resolve => {
       if (settings.useInputBox) {
         return resolve(vscode.window.showInputBox({
