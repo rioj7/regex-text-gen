@@ -63,6 +63,7 @@ function activate(context) {
 
     if (args) {
       settings.useInputBox = false; // for keybindings default is false
+      settings.predefined = {}; // for keybindings ignore predefined from configuration
       settings.updateBy( (name, value) => getProperty(args, name, value) );
     }
     // settings.predefined = convertProxyToObject(settings.predefined);

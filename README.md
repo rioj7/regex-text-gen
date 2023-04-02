@@ -61,6 +61,8 @@ The settings that can be specified in `settings.json` file or the arguments for 
 For the `args` property of the keybinding also:
 
 * `useInputBox` : (boolean) use the input boxes to modify the regular expressions. default: `false`
+* the setting `regexTextGen.predefined` is ignored. There is no QuickPick list unless `args` has a property `predefined`  
+  Any property not defined is taken from `args` or the <code>regexTextGen.<em>propertyName</em></code>.
 
 For a [key bindings in `keybindings.json`](https://code.visualstudio.com/docs/getstarted/keybindings) the `args` property is an object with the given properties.
 
