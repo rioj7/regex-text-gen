@@ -90,7 +90,7 @@ function activate(context) {
       settings = predefPick;
     }
     regex_parser.setGeneratorConfig(settings);
-
+    // @ts-ignore: property sort does not exist on type Selection[]
     let rangesToReplace = editor.selections.sort((a, b) => { return a.start.compareTo(b.start); }).map(selection => {
       let rangeToReplace = new vscode.Range(selection.start, selection.end);
       let textToReplace = editor.document.getText(rangeToReplace);
