@@ -2,7 +2,7 @@
 
 ## [v0.13.0] 2022-07-15
 ### Added
-- `:radix(n)` and `ABC` modifier for numeric expressions
+- `:radix(n)` and `:ABC` modifier for numeric expressions
 
 ## [v0.12.0] 2022-01-18
 ### Added
@@ -22,7 +22,7 @@
 
 ## [v0.9.0] 2020-09-16
 ### Added
-- original backreference modifiers first and -first
+- original backreference modifiers `:first` and `:-first`
 
 ## [v0.8.0] 2020-08-05
 ### Added

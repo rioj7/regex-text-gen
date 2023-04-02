@@ -10,7 +10,7 @@ The current selection is replaced with the generated text.
 
 The command supports Multi Cursor. Each selected range has it own version of the generated text. A selection can be empty, just a cursor.
 
-In the Command Palette use the command: `Generate text based on Regular Expression (regex)`
+In the Command Palette use the command: **Generate text based on Regular Expression (regex)**
 
 In key bindings use the command: `regexTextGen.generateText`
 
@@ -36,14 +36,15 @@ The characters that are not part of the base character set are removed from the 
 
 The settings that can be specified in `settings.json` file or the arguments for key binding (remove `regexTextGen.`) are:
 
-* `regexTextGen.originalTextRegex` : a string. Start of the input box: Match Original Text Regex. default: `(.*)`
-* `regexTextGen.generatorRegex` : a string. Start of the input box: Generator Regex. default: `(a|b|c){5,}`
-* `regexTextGen.defaultUpperLimit` : an integer. An upper limit for the repeat quantifiers that have no upper limit: `*`, `+`, <code>{<em>n</em>,}</code>. default: 10
+* `regexTextGen.originalTextRegex` : a string. Start of the input box: **Match Original Text Regex**. default: `(.*)`
+* `regexTextGen.generatorRegex` : a string. Start of the input box: **Generator Regex**. default: `(a|b|c){5,}`
+* `regexTextGen.defaultUpperLimit` : an integer. An upper limit for the repeat quantifiers that have no upper limit: `*`, `+`, <code>{<em>n</em>,}</code>. default: `10`
 * `regexTextGen.baseCharSet` : array of strings. Character set `.` will generate from. default: `["\u0009", "\u0020-\u007e"]`
 * `regexTextGen.whitespaceCharSet` : array of strings. Character set `\s` will generate from. default: `["\u0009", "\u0020"]`
 * `regexTextGen.digitCharSet` : array of strings. Character set `\d` will generate from. default: `["0-9"]`
 * `regexTextGen.wordCharSet` : array of strings. Character set `\w` will generate from. default: `["_", "0-9", "a-z", "A-Z"]`
-* `regexTextGen.predefined` : If you have settings you regularly use you can define them in this setting. It is an object where the key is used as the label in a Quick Pick List (allows fuzzy search), the `originalTextRegex` is the description and the `generatorRegex` is shown on a separate line. The value for each key is an object with these properties:
+* `regexTextGen.predefined` : If you have settings you regularly use you can define them in this setting. It is an object where the key is used as the label in a Quick Pick List (allows fuzzy search), the `originalTextRegex` is the description and the `generatorRegex` is shown on a separate line. (default: `{}`)  
+  The value for each key is an object with these properties:
     * `originalTextRegex`
     * `generatorRegex`
     * `defaultUpperLimit`
@@ -142,12 +143,14 @@ If you want to have a `-` as part of a character range `[]`, start the range wit
 
 ### Expressions
 
-The expressions allowed are numeric calculations. Because of Javascript some that use the variable `j` have a string result.
+The expressions allowed are numeric calculations.
+
+Because of Javascript some expressions that use the variable `j` or `N` have a string result.
 
 An expression can be used to:
 
 * determine the value(s) of a repeat, e.q. <code>{<em>expr</em>,<em>expr</em>}</code>
-* get the capture group or match of the `originalTextRegex` applied to the selected text of the range, <code>{{<em>expr</em>}}</code>
+* get the capture group or match of the `originalTextRegex` applied to the text of the selection, <code>{{<em>expr</em>}}</code>
 * output a numeric value, <code>{{=<em>expr</em>}}</code>
 * output a numeric value with modifiers, <code>{{=<em>expr</em>:<em>modifier</em>}}</code>
 
@@ -156,15 +159,20 @@ The following characters and variables are allowed:
 * `0..9` and `.` : to construct numbers: integer and floating point
 * `+-*/%()` : mathematical operators and grouping
 * `i` : the 0-based index of the current range/selection
-* `j[]` : `j` is an array with the repeat counter values (0-based). `j[0]` is the repeat counter value of the repeat closest to the right of the expression. `j[1]` is the next closest to the right. This makes it possible to copy/paste parts of a Generator Expression and not worry about which repeat it is. Most likely you want the closest repeat.<br/>Because the expressions are evaluated by a JavaScript engine the variable `j` can be used without square brackets. Depending on the content of `j` the result will be converted to:
+* `j[]` : `j` is an array with the repeat counter values (0-based). `j[0]` is the repeat counter value of the repeat closest to the right of the expression. `j[1]` is the next closest to the right. This makes it possible to copy/paste parts of a Generator Expression and not worry about which repeat it is. Most likely you want the closest repeat.  
+Because the expressions are evaluated by a JavaScript engine the variable `j` can be used without square brackets. Depending on the content of `j` the result will be converted to:
     * `[]` : the empty array is converted to `""` (empty string). Depending on the operator used it can be converted to `0` (numeric zero)
     * <code>[<em>n</em>, ...]</code> : it has 1 or more values is converted to a string with the values separated by `,`. If it contains only 1 value depending on the operator it can be converted to the numeric value. The array `[5,2,3]` is converted to the string: `5,2,3`
-* `S` : is the number of elements in the result of matching the `originalTextRegex` to the content of the selection. See also [Original text back reference](#original-text-backreference). This makes it possible to loop over all matched parts if you have specified the `g` flag. For example to show all matched parts with a `-` as separator and numbered starting at 1:<br/>`({{=j[0]+1}}:{{j[0]}}-){S}`
-* `N[]` : `N` is an array of numbers. Every element of the result of matching the `originalTextRegex` to the content of the selection is converted to a number with the JavaScript function [`Number()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number). If a captured group can't be converted to a number that element in the array will be `0`.
+* `S` : is the number of elements in the result of matching the `originalTextRegex` to the content of the selection. See also [Original text back reference](#original-text-backreference). This makes it possible to loop over all matched parts if you have specified the `g` flag. For example to show all matched parts with a `-` as separator and numbered starting at 1:  
+`({{=j[0]+1}}:{{j[0]}}-){S}`
+* `N[]` : `N` is an array of numbers. Every capture group in the result of matching the `originalTextRegex` to the content of the selection is converted to a number with the JavaScript function [`Number()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number). If a capture group does not contain a [JavaScript Numeric Literal](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Lexical_grammar#numeric_literals) it can't be converted to a number and that element in the array will be `0`. With the correct prefix you can use binary, octal and hexadecimal.  
+The first capture group is converted to element `N[1]`. `N[0]` is the whole matched `originalTextRegex` convered to a number.
 * <code>:<em>modifier</em></code> : the numeric value, <code>{{=<em>expr</em>}}</code>, can have 1 or more modifiers. The modifiers you can add are:
     * <code>:fixed(<em>number</em>)</code> : display the value with _number_ decimal places. Example: using `{{=120+3.45:fixed(4)}}` gives `123.4500`
-    * <code>:simplify</code> : display the value with the trailing `0`'s and decimal point removed. Only used in combination with <code>:fixed(<em>number</em>)</code>. Example: using `{{=120+3.45:simplify:fixed(4)}}` gives `123.45`
-    * <code>:size(<em>number</em>)</code> : display the value padded left with `0` till the requested size. Can be combined with `fixed` modifier. Example: using `{{=i+1:size(4)}}` gives `0001`, `0002`, ...
+    * <code>:simplify</code> : display the value with the trailing `0`'s and decimal point removed. Only used in combination with <code>:fixed(<em>number</em>)</code>.  
+    Example: using `{{=120+3.45:simplify:fixed(4)}}` gives `123.45`
+    * <code>:size(<em>number</em>)</code> : display the value padded left with `0` till the requested size. Can be combined with `fixed` modifier.  
+    Example: using `{{=i+1:size(4)}}` gives `0001`, `0002`, ...
     * <code>:radix(<em>number</em>)</code> : display the value in the specified radix (`2` .. `36`) (default: `10`).
     * <code>:ABC</code> : Use capital characters `A-Z` for radix > 10.
 
@@ -199,7 +207,7 @@ An original backreference can be modified  with the following modifiers: <code>{
 
 For example if you want to add indented comments to a number of lines, and use the first line indentation to place the comment you can use the following keybinding:
 
-```
+```json
   {
     "key": "ctrl+shift+f7",  // or any other key combination
     "when": "editorTextFocus",
@@ -214,7 +222,7 @@ For example if you want to add indented comments to a number of lines, and use t
 
 `///` is the comment (doxygen) characters we want to add to the beginning of the lines. Empty lines will be handled correctly, because both capture groups are empty.
 
-If you want to use the keybinging as a template and make changes you can set `useInputBox` to `true` or delete that line.
+If you want to use the keybinding as a template and make changes before applying you can set `useInputBox` to `true`.
 
 ### Two step Find and Replace
 
@@ -228,13 +236,13 @@ Some tools wrap a `<text>` tag in an SVG with a `<g>` tag with a `translate` tra
 
 Find regex and Original text regex:
 
-```
+```none
 <g transform="translate\((-?[\d.]+),(-?[\d.]+)\)"><text x="(-?[\d.]+)" y="(-?[\d.]+)"
 ```
 
 Generate regex
 
-```
+```none
 <g><text x="{{=N[1]+N[3]}}" y="{{=N[2]+N[4]}}"
 ```
 
@@ -261,7 +269,7 @@ Find regex and Original text regex:
 
 Generate regex
 
-```
+```none
 {{=N[1]-0}},{{=N[2]-0}}
 ```
 
