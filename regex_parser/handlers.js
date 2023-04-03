@@ -142,8 +142,9 @@ var handlers = (function () {
           return value;
       };
     }
-    function buildNumericExprHandler(node, generatorFunctions) {
-      var exprFunction = getExpressionFunctions(node)[0];
+    function buildValueExprHandler(node, generatorFunctions) {
+      const allValid = true;
+      var exprFunction = getExpressionFunctions(node, allValid)[0];
       var fixedDigits = undefined;
       var size = undefined;
       var simplify = false;
@@ -163,7 +164,7 @@ var handlers = (function () {
         if (exprMod.text.startsWith('ABC')) { capitals = true; }
       });
       return function numericExpressionHandler() {
-          var value = exprFunction(rangeIndexSource, loopCounts, captureGroupsSource.length, captureGroupsSourceNumbers);
+          var value = exprFunction(rangeIndexSource, loopCounts, captureGroupsSource.length, captureGroupsSourceNumbers, captureGroupsSource);
           if (radix !== 10) {
             value = Number(value.toFixed(0)).toString(radix);
             if (capitals) { value = value.toUpperCase(); }
@@ -246,14 +247,14 @@ var handlers = (function () {
         };
     }
 
-    function findChildrenOfType(node, typeName) {
+    function findChildrenOfType(node, ...typeNames) {
         var matches = [];
 
         function search(n) {
-            if (n.matched.name !== typeName) {
-                n.children.forEach(function (c) { search(c); });
+            if (typeNames.includes(n.matched.name)) {
+              matches.push(n);
             } else {
-                matches.push(n);
+              n.children.forEach(function (c) { search(c); });
             }
         }
         search(node);
@@ -266,11 +267,16 @@ var handlers = (function () {
         if (found) return found;
       }
     }
-    function getExpressionFunctions(node) {
+    function getExpressionFunctions(node, allValid) {
       // return findChildrenOfType(node, 'EXPRESSION').map( expr => Function(`"use strict";return (function calcexpr(i,j,S) { return ${expr.text} })`)());
-      return findChildrenOfType(node, 'EXPRESSION').map( expr => {
+      return findChildrenOfType(node, 'EXPRESSION', 'VALUE_EXPRESSION').map( expr => {
         try {
-          return Function(`"use strict";return (function calcexpr(i,j,S,N) {
+          if (allValid) {
+            return Function(`"use strict";return (function calcexpr(i,j,S,N,C) {
+              return ${expr.text};
+            })`)();
+          }
+          return Function(`"use strict";return (function calcexpr(i,j,S,N,C) {
             let val = ${expr.text};
             if (isNaN(val)) { throw new Error("Error calculating: ${expr.text}"); }
             return val;
@@ -349,7 +355,7 @@ var handlers = (function () {
         "PARENS" : buildParensGenerator,
         "BACKREF" : buildBackRefHandler,
         "SRCBACKREF_EXPR" : buildSrcBackRefHandler,
-        "NUMERIC_EXPR" : buildNumericExprHandler,
+        "VALUE_EXPR" : buildValueExprHandler,
         "ESC_META_CHAR" : buildEscMetaCharHandler,
         "DOT" :             build_buildCharSetGenerator(baseCharSet, "base"),
         "WHITESPACE" :      build_buildCharSetGenerator(whitespaceCharSet, "whitespace"),

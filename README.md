@@ -121,7 +121,7 @@ The following regex symbols are recognised in the `generatorRegex` regular expre
 <tr><td><code>\<em>n</em></code></td><td>capture group backreference</td><td><code>(abc*)XYZ\1</code></td></tr>
 <tr><td><code>{{<em>expr</em>}}</code></td><td>original text (capturing group) backreference.</td><td><code>XY-{{1}}-AP</code></td></tr>
 <tr><td><code>{{<em>expr</em>:<em>modifier</em>}}</code></td><td><a href="#modified-original-text-backreference">modified original text (capturing group) backreference</a>.</td><td><code>{{1:first}}///{{1:-first}}</code></td></tr>
-<tr><td><code>{{=<em>expr</em>}}</code></td><td>numeric value expression.</td><td><code>{{=i+1}}: XY</code></td></tr>
+<tr><td><code>{{=<em>expr</em>}}</code></td><td>numeric or string value expression.</td><td><code>{{=i+1}}: XY</code></td></tr>
 <tr><td><code>{{=<em>expr</em>:<em>modifier</em>}}</code></td><td>numeric value expression with output modifier.</td><td><code>{{=N[1]*3.14159:fixed(4)}}</code></td></tr>
 <tr><td><code>\s</code> and <code>\S</code></td><td>whitespace / non-whitespace alias</td><td></td></tr>
 <tr><td><code>\d</code> and <code>\D</code></td><td>digit / non-digit alias</td><td></td></tr>
@@ -143,18 +143,20 @@ If you want to have a `-` as part of a character range `[]`, start the range wit
 
 ### Expressions
 
-The expressions allowed are numeric calculations.
+The expressions allowed are numeric calculations. For <code>{{=<em>expr</em>}}</code> the expression can also have a string result.
 
 Because of Javascript some expressions that use the variable `j` or `N` have a string result.
 
 An expression can be used to:
 
-* determine the value(s) of a repeat, e.q. <code>{<em>expr</em>,<em>expr</em>}</code>
-* get the capture group or match of the `originalTextRegex` applied to the text of the selection, <code>{{<em>expr</em>}}</code>
-* output a numeric value, <code>{{=<em>expr</em>}}</code>
-* output a numeric value with modifiers, <code>{{=<em>expr</em>:<em>modifier</em>}}</code>
+* determine the value(s) of a repeat, e.q. <code>{<em>expr</em>,<em>expr</em>}</code> ([limited expression](#limited-expression-character-set))
+* get the capture group or match of the `originalTextRegex` applied to the text of the selection, <code>{{<em>expr</em>}}</code> ([limited expression](#limited-expression-character-set))
+* output a numeric or string value, <code>{{=<em>expr</em>}}</code>, see [special characters](#value-expression-special-characters) ([extented expression](#extended-variables-and-modifiers))
+* output a numeric value with modifiers, <code>{{=<em>expr</em>:<em>modifier</em>}}</code>, see [special characters](#value-expression-special-characters) ([extented expression](#extended-variables-and-modifiers))
 
-The following characters and variables are allowed:
+#### Limited expression character set
+
+The following characters and variables are allowed in repeat expressions and original text (capturing group) backreference:
 
 * `0..9` and `.` : to construct numbers: integer and floating point
 * `+-*/%()` : mathematical operators and grouping
@@ -165,8 +167,18 @@ Because the expressions are evaluated by a JavaScript engine the variable `j` ca
     * <code>[<em>n</em>, ...]</code> : it has 1 or more values is converted to a string with the values separated by `,`. If it contains only 1 value depending on the operator it can be converted to the numeric value. The array `[5,2,3]` is converted to the string: `5,2,3`
 * `S` : is the number of elements in the result of matching the `originalTextRegex` to the content of the selection. See also [Original text back reference](#original-text-backreference). This makes it possible to loop over all matched parts if you have specified the `g` flag. For example to show all matched parts with a `-` as separator and numbered starting at 1:  
 `({{=j[0]+1}}:{{j[0]}}-){S}`
-* `N[]` : `N` is an array of numbers. Every capture group in the result of matching the `originalTextRegex` to the content of the selection is converted to a number with the JavaScript function [`Number()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number). If a capture group does not contain a [JavaScript Numeric Literal](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Lexical_grammar#numeric_literals) it can't be converted to a number and that element in the array will be `0`. With the correct prefix you can use binary, octal and hexadecimal.  
-The first capture group is converted to element `N[1]`. `N[0]` is the whole matched `originalTextRegex` convered to a number.
+* `N[]` : `N` is an array of numbers. Every capture group of the result of matching the `originalTextRegex` to the content of the selection is converted to a number with the JavaScript function [`Number()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number). If a capture group does not contain a [JavaScript Numeric Literal](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Lexical_grammar#numeric_literals) it can't be converted to a number and that element in the array will be `0`. With the correct prefix you can use binary, octal and hexadecimal.  
+The first capture group is converted to element `N[1]`. `N[0]` is the whole matched `originalTextRegex` convered to a number.  
+If the number is large most likely the `n` suffix is missing in the capture group. To convert a BigInt you have to use the `C` variable and add the `n` suffix before converting the string to a Number.
+
+#### Extended variables and modifiers
+
+The expressions in <code>{{=<em>expr</em>}}</code> and <code>{{=<em>expr</em>:<em>modifier</em>}}</code> can use additional variable and modifiers.
+
+These expressions can use **any** JavaScript expression that result in a number or string. But [special handling of `:` and `}` is needed](#value-expression-special-characters).
+
+* `C[]` : `C` is an array of strings. They are the capture groups of matching the `originalTextRegex` to the content of the selection.  
+  `C[0]` is the whole matched text.
 * <code>:<em>modifier</em></code> : the numeric value, <code>{{=<em>expr</em>}}</code>, can have 1 or more modifiers. The modifiers you can add are:
     * <code>:fixed(<em>number</em>)</code> : display the value with _number_ decimal places. Example: using `{{=120+3.45:fixed(4)}}` gives `123.4500`
     * <code>:simplify</code> : display the value with the trailing `0`'s and decimal point removed. Only used in combination with <code>:fixed(<em>number</em>)</code>.  
@@ -224,6 +236,31 @@ For example if you want to add indented comments to a number of lines, and use t
 
 If you want to use the keybinding as a template and make changes before applying you can set `useInputBox` to `true`.
 
+### Value Expression Special Characters
+
+To simplify the parser for Value expressions <code>{{=<em>expr</em>}}</code> and <code>{{=<em>expr</em>:<em>modifier</em>}}</code> the <code><em>expr</em></code> part can not contain the characters `:` and `}`. If you need these characters in a string you have to use the Unicode code point equivalents:
+
+* `":"` is the same as `"\\u003A"` or `String.fromCodePoint(0x3A)`
+* `"}"` is the same as `"\\u007D"` or `String.fromCodePoint(0x7D)`
+
+In the next example we have in a file numbers separated with `:` and we want each number divided by 3 and separated by `-`.
+
+Example text for a selection: `1234:5678:9876`
+
+We can transform that using:
+
+```json
+{
+  "generatorRegex": "{{=C[1].split('\\u003A').map(n => (Number(n)/3).toFixed(0)).join('-')}}"
+}
+```
+
+Use `\` instead of `\\` if you enter this in an InputBox.
+
+We use the default `originalTextRegex` of `(.*)`.
+
+For the example text the result is: `411-1893-3292`
+
 ### Two step Find and Replace
 
 If you perform a search based on a regular expression in the Find dialog of VSC and you select 1 or multiple instances you can split these selected ranges with the regular expression `originalTextRegex` and use the captured groups in the replacement string (the generated text). If you don't use the meta characters in the `generatorRegex` you can see this as a two step Find and Replace.
@@ -271,6 +308,19 @@ Generate regex
 
 ```none
 {{=N[1]-0}},{{=N[2]-0}}
+```
+
+### Use Headecimal numbers without a prefix
+
+If a capture group contains a hexadecimal number but not the `0x` prefix it is not correctly stored in the `N` array.
+
+You have to convert the number using the `C` array by adding the prefix `0x` to the capture group string:
+
+```json
+{
+  "originalTextRegex": "([a-fA-F0-9]+)",
+  "generatorRegex": "{{=Number('0x'+C[1])-0xABC:radix(16):ABC}}"
+}
 ```
 
 ### Examples predefined in the settings
